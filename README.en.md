@@ -114,7 +114,7 @@ cd EsportsNewsAppAndroid
 Create a `local.properties` file in the project root:
 
 ```properties id="xpf0ea"
-API_KEY="your_api_key_here"
+API_ACCESS_KEY="your_api_key_here"
 ```
 
 ---
@@ -141,7 +141,7 @@ The application automatically switches between local and production environments
 All requests are authenticated using the following header:
 
 ```http id="e2wh22"
-X-API-Key: YOUR_API_KEY
+API_ACCESS_KEY: YOUR_API_KEY
 ```
 
 ---

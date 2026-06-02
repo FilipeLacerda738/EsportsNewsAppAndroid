@@ -112,7 +112,7 @@ cd EsportsNewsAppAndroid
 Crie um arquivo `local.properties` na raiz do projeto:
 
 ```properties
-API_KEY="sua_chave_de_acesso_aqui"
+API_ACCESS_KEY="sua_chave_de_acesso_aqui"
 ```
 
 ---
@@ -139,7 +139,7 @@ O aplicativo alterna automaticamente entre ambiente local e produção através 
 Todos os requests utilizam autenticação via header:
 
 ```http
-X-API-Key: SUA_API_KEY
+API_ACCESS_KEY: SUA_API_KEY
 ```
 
 ---
