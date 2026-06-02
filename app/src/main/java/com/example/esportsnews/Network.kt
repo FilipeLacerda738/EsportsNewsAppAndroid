@@ -23,7 +23,7 @@ object RetrofitClient {
     private val BASE_URL = if (BuildConfig.DEBUG) {
         "http://192.168.1.11:8000/"
     } else {
-        "https://esports-pro-api.onrender.com"
+        "https://esports-pro-api.onrender.com/"
     }
 
     private val client = OkHttpClient.Builder().addInterceptor(Interceptor { chain ->
