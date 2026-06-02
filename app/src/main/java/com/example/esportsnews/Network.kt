@@ -10,7 +10,7 @@ import retrofit2.http.Query
 
 interface ApiService {
     @Headers("Cache-Control: no-cache")
-    @GET("api/v1/matches")
+    @GET("api/v1/matches/")
     suspend fun getMatches(
         @Query("game") game: String?,
         @Query("status") status: String?,
