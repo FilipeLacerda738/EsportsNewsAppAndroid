@@ -11,6 +11,28 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
+
+fun getAppVersionName(): String {
+    return try {
+        val process = ProcessBuilder("git", "describe", "--tags", "--abbrev=0").start()
+        val version = process.inputStream.bufferedReader().readText().trim()
+        if (version.isNotEmpty()) version.replace("v", "") else "1.0.0"
+    } catch (e: Exception) {
+        "1.0.0"
+    }
+}
+
+fun getAppVersionCode(): Int {
+    return try {
+        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD").start()
+        val count = process.inputStream.bufferedReader().readText().trim()
+        if (count.isNotEmpty()) count.toInt() else 1
+    } catch (e: Exception) {
+        1
+    }
+}
+
+
 android {
     namespace = "com.example.esportsnews"
     compileSdk = 35
@@ -19,8 +41,9 @@ android {
         applicationId = "com.example.esportsnews"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+
+        versionCode = getAppVersionCode()
+        versionName = getAppVersionName()
 
         val apiKey = localProperties.getProperty("API_KEY") ?: ""
         buildConfigField("String", "API_KEY", "\"$apiKey\"")
@@ -50,7 +73,6 @@ android {
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
-
 
     implementation("androidx.compose.material3:material3:1.3.0")
 

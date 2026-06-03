@@ -2,6 +2,7 @@ package com.example.esportsnews
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.esportsnews.BuildConfig
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,6 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 
 class MatchesViewModel : ViewModel() {
-
 
     private val _matches = MutableStateFlow<List<Match>>(emptyList())
     val matches: StateFlow<List<Match>> = _matches
@@ -43,8 +43,6 @@ class MatchesViewModel : ViewModel() {
     private var allFetchedMatches: List<Match> = emptyList()
     private var pollingJob: Job? = null
 
-
-
     private val _matchDetail = MutableStateFlow<MatchDetail?>(null)
     val matchDetail: StateFlow<MatchDetail?> = _matchDetail
 
@@ -54,12 +52,36 @@ class MatchesViewModel : ViewModel() {
     private val _detailError = MutableStateFlow<String?>(null)
     val detailError: StateFlow<String?> = _detailError
 
+    private val _updateAvailable = MutableStateFlow<AppVersion?>(null)
+    val updateAvailable: StateFlow<AppVersion?> = _updateAvailable
 
     init {
         fetchMatches()
         managePolling()
+        checkForUpdates()
     }
 
+
+    private fun checkForUpdates() {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitClient.api.getAppVersion()
+                if (response.isSuccessful) {
+                    val serverVersion = response.body()?.version
+                    val currentVersion = BuildConfig.VERSION_NAME
+
+                    if (serverVersion != null && serverVersion != currentVersion) {
+                        _updateAvailable.value = response.body()
+                    }
+                }
+            } catch (e: Exception) {
+
+            }
+        }
+    }
+    fun dismissUpdateDialog() {
+        _updateAvailable.value = null
+    }
 
     fun fetchMatchDetails(matchId: Int) {
         viewModelScope.launch {
@@ -76,19 +98,16 @@ class MatchesViewModel : ViewModel() {
         }
     }
 
-
     fun clearMatchDetails() {
         _matchDetail.value = null
         _detailError.value = null
     }
-
 
     fun fetchMatches(isRefresh: Boolean = false) {
         viewModelScope.launch {
             if (isRefresh) _isRefreshing.value = true else _isLoading.value = true
             _error.value = null
             try {
-
                 val apiStatus = when (_selectedStatus.value) {
                     "Ao Vivo" -> "running"
                     "Finalizados" -> "finished"
@@ -168,7 +187,6 @@ class MatchesViewModel : ViewModel() {
                 }
             }
         }
-
         _matches.value = filteredList
     }
 
