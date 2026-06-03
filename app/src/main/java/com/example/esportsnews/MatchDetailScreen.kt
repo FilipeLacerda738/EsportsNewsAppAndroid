@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.esportsnews.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,6 +32,7 @@ fun MatchDetailScreen(
     val detail by viewModel.matchDetail.collectAsState()
     val isLoading by viewModel.isDetailLoading.collectAsState()
     val error by viewModel.detailError.collectAsState()
+
     LaunchedEffect(matchId) {
         viewModel.fetchMatchDetails(matchId)
     }
@@ -78,6 +80,7 @@ fun MatchDetailContent(match: MatchDetail) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -94,17 +97,16 @@ fun MatchDetailContent(match: MatchDetail) {
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(
-                        text = match.status.uppercase(),
-                        fontSize = 12.sp,
-                        color = if (match.status == "running") Color.Red else Color.Gray,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    StatusBadge(status = match.status, streamUrl = match.streamUrl)
                 }
+
                 TeamLogoAndName(team = match.teamB, modifier = Modifier.weight(1f))
             }
             Spacer(modifier = Modifier.height(32.dp))
         }
+
         item {
             Text("ESCALAÇÕES", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(16.dp))
@@ -145,13 +147,29 @@ fun MatchDetailContent(match: MatchDetail) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "Mapa ${game.position}")
+                        val mapDisplayName = if (!game.mapName.isNullOrBlank()) {
+                            "Mapa ${game.position} - ${game.mapName}"
+                        } else {
+                            "Mapa ${game.position}"
+                        }
+
                         Text(
-                            text = game.status.uppercase(),
+                            text = mapDisplayName,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Text(
+                            text = when (game.status.lowercase()) {
+                                "running" -> "AO VIVO"
+                                "finished" -> "FINALIZADO"
+                                "not_started" -> "EM BREVE"
+                                else -> game.status.uppercase()
+                            },
                             fontWeight = FontWeight.Bold,
-                            color = if (game.status == "running") Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (game.status.lowercase() == "running") LiveRed else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
