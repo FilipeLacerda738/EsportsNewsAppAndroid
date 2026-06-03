@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import com.example.esportsnews.ui.theme.*
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -27,8 +28,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MatchesScreen(viewModel: MatchesViewModel,
-                  onMatchClick: (Int) -> Unit) {
+fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
     val matches by viewModel.matches.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -39,12 +39,9 @@ fun MatchesScreen(viewModel: MatchesViewModel,
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
 
-
     val updateData by viewModel.updateAvailable.collectAsState()
     val context = LocalContext.current
-
     val localeBr = Locale("pt", "BR")
-
 
     updateData?.let { updateInfo ->
         AlertDialog(
@@ -56,7 +53,7 @@ fun MatchesScreen(viewModel: MatchesViewModel,
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateInfo.downloadUrl))
+                        val intent = Intent(Intent.ACTION_VIEW, updateInfo.downloadUrl.toUri())
                         context.startActivity(intent)
                         viewModel.dismissUpdateDialog()
                     }
@@ -78,7 +75,6 @@ fun MatchesScreen(viewModel: MatchesViewModel,
         containerColor = DarkBackground,
         topBar = {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 12.dp, top = 8.dp)
@@ -89,9 +85,7 @@ fun MatchesScreen(viewModel: MatchesViewModel,
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = 2.sp
                     )
-
                     Spacer(modifier = Modifier.width(8.dp))
-
                     Surface(
                         shape = RoundedCornerShape(6.dp),
                         color = AccentBlue,
@@ -117,7 +111,7 @@ fun MatchesScreen(viewModel: MatchesViewModel,
                     onValueChange = { viewModel.onSearchQueryChanged(it) },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("Buscar time...", color = TextSecondary) },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = TextSecondary) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = CardSurface,
@@ -233,7 +227,15 @@ fun MatchesScreen(viewModel: MatchesViewModel,
                 .padding(paddingValues)
         ) {
             if (isLoading && !isRefreshing) {
-                CircularProgressIndicator(color = AccentBlue, modifier = Modifier.align(Alignment.Center))
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(6) {
+                        SkeletonMatchCard()
+                    }
+                }
             } else if (error != null) {
                 Text(text = error ?: "Erro", color = LiveRed, modifier = Modifier.align(Alignment.Center))
             } else {
@@ -243,8 +245,7 @@ fun MatchesScreen(viewModel: MatchesViewModel,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(items = matches, key = { match -> match.id }) { match ->
-                        ModernMatchCard(match = match,
-                            onClick = { onMatchClick(match.id) })
+                        ModernMatchCard(match = match, onClick = { onMatchClick(match.id) })
                     }
                 }
             }

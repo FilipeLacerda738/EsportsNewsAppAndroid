@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
@@ -40,18 +41,19 @@ fun formatMatchDate(dateString: String?): String {
 }
 
 @Composable
-fun ModernMatchCard(match: Match,
-                    onClick: () -> Unit) {
-
+fun ModernMatchCard(match: Match, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp).fillMaxWidth()
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -62,15 +64,13 @@ fun ModernMatchCard(match: Match,
                     if (match.league?.image_url != null) {
                         AsyncImage(
                             model = match.league.image_url,
-                            contentDescription = "Logo da liga",
+                            contentDescription = null,
                             modifier = Modifier.size(80.dp),
                             contentScale = ContentScale.Fit
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-
                     val displayGame = if (match.game.equals("CSGO", ignoreCase = true)) "CS2" else match.game.uppercase()
-
                     Text(
                         text = displayGame,
                         fontSize = 12.sp,
@@ -81,9 +81,7 @@ fun ModernMatchCard(match: Match,
                 }
                 StatusBadge(status = match.status, streamUrl = match.stream_url)
             }
-
             Spacer(modifier = Modifier.height(20.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -92,7 +90,6 @@ fun ModernMatchCard(match: Match,
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     TeamProfile(name = match.team_a.name, imageUrl = match.team_a.image_url)
                 }
-
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -112,9 +109,7 @@ fun ModernMatchCard(match: Match,
                             color = TextPrimary
                         )
                     }
-
                     Spacer(modifier = Modifier.height(4.dp))
-
                     Text(
                         text = formatMatchDate(match.begin_at),
                         fontSize = 12.sp,
@@ -122,7 +117,6 @@ fun ModernMatchCard(match: Match,
                         color = TextSecondary
                     )
                 }
-
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     TeamProfile(name = match.team_b.name, imageUrl = match.team_b.image_url)
                 }
@@ -143,7 +137,7 @@ fun TeamProfile(name: String, imageUrl: String?) {
         ) {
             AsyncImage(
                 model = imageUrl,
-                contentDescription = "Logo $name",
+                contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit
             )
@@ -164,13 +158,11 @@ fun TeamProfile(name: String, imageUrl: String?) {
 fun StatusBadge(status: String, streamUrl: String?) {
     val isLive = status.lowercase() == "running"
     val isFinished = status.lowercase() == "finished"
-
     val badgeColor = when {
         isLive -> LiveRed
         isFinished -> TextSecondary
         else -> AccentBlue
     }
-
     val displayText = when (status.lowercase()) {
         "running" -> "AO VIVO"
         "finished" -> "FINALIZADO"
@@ -225,11 +217,68 @@ fun BlinkingDot() {
         ),
         label = "AlphaAnimation"
     )
-
     Box(
         modifier = Modifier
             .size(8.dp)
             .alpha(alpha)
             .background(color = LiveRed, shape = CircleShape)
     )
+}
+
+@Composable
+fun SkeletonMatchCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)).shimmerEffect())
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(modifier = Modifier.height(14.dp).width(40.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                }
+                Box(modifier = Modifier.height(24.dp).width(70.dp).clip(RoundedCornerShape(12.dp)).shimmerEffect())
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(modifier = Modifier.size(64.dp).clip(CircleShape).shimmerEffect())
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Box(modifier = Modifier.height(14.dp).width(60.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                    }
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Box(modifier = Modifier.height(28.dp).width(30.dp).clip(RoundedCornerShape(6.dp)).shimmerEffect())
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(modifier = Modifier.height(12.dp).width(80.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                }
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(modifier = Modifier.size(64.dp).clip(CircleShape).shimmerEffect())
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Box(modifier = Modifier.height(14.dp).width(60.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                    }
+                }
+            }
+        }
+    }
 }
