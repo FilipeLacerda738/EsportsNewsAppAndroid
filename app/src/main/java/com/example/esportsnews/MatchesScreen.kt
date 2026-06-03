@@ -24,7 +24,8 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MatchesScreen(viewModel: MatchesViewModel) {
+fun MatchesScreen(viewModel: MatchesViewModel,
+                  onMatchClick: (Int) -> Unit) {
     val matches by viewModel.matches.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -206,7 +207,8 @@ fun MatchesScreen(viewModel: MatchesViewModel) {
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(items = matches, key = { match -> match.id }) { match ->
-                        ModernMatchCard(match = match)
+                        ModernMatchCard(match = match,
+                            onClick = { onMatchClick(match.id) })
                     }
                 }
             }

@@ -40,9 +40,12 @@ fun formatMatchDate(dateString: String?): String {
 }
 
 @Composable
-fun ModernMatchCard(match: Match) {
+fun ModernMatchCard(match: Match,
+                    onClick: () -> Unit) {
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)

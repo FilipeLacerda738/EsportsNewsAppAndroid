@@ -6,7 +6,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Headers
+import retrofit2.http.Path
 import retrofit2.http.Query
+import java.util.concurrent.TimeUnit
 
 interface ApiService {
     @Headers("Cache-Control: no-cache")
@@ -17,6 +19,13 @@ interface ApiService {
         @Query("limit") limit: Int = 50,
         @Query("data_calendario") dataCalendario: String? = null
     ): List<Match>
+
+
+    @Headers("Cache-Control: no-cache")
+    @GET("api/v1/matches/{match_id}/details")
+    suspend fun getMatchDetails(
+        @Path("match_id") matchId: Int
+    ): MatchDetail
 }
 
 object RetrofitClient {
@@ -26,12 +35,18 @@ object RetrofitClient {
         "https://esports-pro-api.onrender.com/"
     }
 
-    private val client = OkHttpClient.Builder().addInterceptor(Interceptor { chain ->
-        val request = chain.request().newBuilder()
-            .addHeader("X-API-Key", BuildConfig.API_KEY)
-            .build()
-        chain.proceed(request)
-    }).build()
+    private val client = OkHttpClient.Builder()
+
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+
+        .addInterceptor(Interceptor { chain ->
+            val request = chain.request().newBuilder()
+                .addHeader("X-API-Key", BuildConfig.API_KEY)
+                .build()
+            chain.proceed(request)
+        }).build()
 
     val api: ApiService by lazy {
         Retrofit.Builder()

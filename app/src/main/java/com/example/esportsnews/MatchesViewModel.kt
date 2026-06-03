@@ -10,9 +10,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 class MatchesViewModel : ViewModel() {
+
 
     private val _matches = MutableStateFlow<List<Match>>(emptyList())
     val matches: StateFlow<List<Match>> = _matches
@@ -43,10 +43,45 @@ class MatchesViewModel : ViewModel() {
     private var allFetchedMatches: List<Match> = emptyList()
     private var pollingJob: Job? = null
 
+
+
+    private val _matchDetail = MutableStateFlow<MatchDetail?>(null)
+    val matchDetail: StateFlow<MatchDetail?> = _matchDetail
+
+    private val _isDetailLoading = MutableStateFlow(false)
+    val isDetailLoading: StateFlow<Boolean> = _isDetailLoading
+
+    private val _detailError = MutableStateFlow<String?>(null)
+    val detailError: StateFlow<String?> = _detailError
+
+
     init {
         fetchMatches()
         managePolling()
     }
+
+
+    fun fetchMatchDetails(matchId: Int) {
+        viewModelScope.launch {
+            _isDetailLoading.value = true
+            _detailError.value = null
+            try {
+                val detail = RetrofitClient.api.getMatchDetails(matchId)
+                _matchDetail.value = detail
+            } catch (e: Exception) {
+                _detailError.value = "Erro ao carregar detalhes: ${e.message}"
+            } finally {
+                _isDetailLoading.value = false
+            }
+        }
+    }
+
+
+    fun clearMatchDetails() {
+        _matchDetail.value = null
+        _detailError.value = null
+    }
+
 
     fun fetchMatches(isRefresh: Boolean = false) {
         viewModelScope.launch {
@@ -115,8 +150,8 @@ class MatchesViewModel : ViewModel() {
 
         if (query.isNotEmpty()) {
             filteredList = filteredList.filter { match ->
-                match.team_a.name.lowercase().contains(query) ||
-                        match.team_b.name.lowercase().contains(query)
+                match.team_a?.name?.lowercase()?.contains(query) == true ||
+                        match.team_b?.name?.lowercase()?.contains(query) == true
             }
         }
 
