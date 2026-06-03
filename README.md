@@ -4,7 +4,7 @@
 
 ### O seu portal para acompanhar partidas de CS2 e VALORANT em tempo real.
 
-[![Licença](https://img.shields.io/github/license/FilipeLacerda738/EsportsNewsAppAndroid?style=for-the-badge\&logo=gnu\&color=2B3137\&labelColor=161B22)](LICENSE)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=for-the-badge\&logo=android\&logoColor=white\&labelColor=161B22)](https://www.android.com/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-7F52FF?style=for-the-badge\&logo=kotlin\&logoColor=white\&labelColor=161B22)](https://kotlinlang.org/)
 <a href="https://github.com/FilipeLacerda738/EsportsNewsAppAndroid/releases/latest">
