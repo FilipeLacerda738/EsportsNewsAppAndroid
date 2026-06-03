@@ -11,17 +11,22 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-
 fun getAppVersionName(): String {
     return try {
+        val gitFolder = rootProject.rootDir
         val process = ProcessBuilder("git", "describe", "--tags", "--abbrev=0")
-            .directory(rootProject.rootDir)
+            .directory(gitFolder)
+            .redirectErrorStream(true)
             .start()
 
         process.waitFor()
+        val result = process.inputStream.bufferedReader().readText().trim()
 
-        val version = process.inputStream.bufferedReader().readText().trim()
-        if (version.isNotEmpty()) version.replace("v", "") else "1.0.0"
+        if (result.contains("fatal") || result.contains("error") || result.isEmpty()) {
+            "1.0.0"
+        } else {
+            result.replace("v", "")
+        }
     } catch (e: Exception) {
         "1.0.0"
     }
@@ -29,19 +34,20 @@ fun getAppVersionName(): String {
 
 fun getAppVersionCode(): Int {
     return try {
+        val gitFolder = rootProject.rootDir
         val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
-            .directory(rootProject.rootDir)
+            .directory(gitFolder)
+            .redirectErrorStream(true)
             .start()
 
         process.waitFor()
+        val result = process.inputStream.bufferedReader().readText().trim()
 
-        val count = process.inputStream.bufferedReader().readText().trim()
-        if (count.isNotEmpty()) count.toInt() else 1
+        if (result.contains("fatal") || result.isEmpty()) 1 else result.toInt()
     } catch (e: Exception) {
         1
     }
 }
-
 
 android {
     namespace = "com.example.esportsnews"
