@@ -14,7 +14,12 @@ if (localPropertiesFile.exists()) {
 
 fun getAppVersionName(): String {
     return try {
-        val process = ProcessBuilder("git", "describe", "--tags", "--abbrev=0").start()
+        val process = ProcessBuilder("git", "describe", "--tags", "--abbrev=0")
+            .directory(rootProject.rootDir)
+            .start()
+
+        process.waitFor()
+
         val version = process.inputStream.bufferedReader().readText().trim()
         if (version.isNotEmpty()) version.replace("v", "") else "1.0.0"
     } catch (e: Exception) {
@@ -24,7 +29,12 @@ fun getAppVersionName(): String {
 
 fun getAppVersionCode(): Int {
     return try {
-        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD").start()
+        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
+            .directory(rootProject.rootDir)
+            .start()
+
+        process.waitFor()
+
         val count = process.inputStream.bufferedReader().readText().trim()
         if (count.isNotEmpty()) count.toInt() else 1
     } catch (e: Exception) {
