@@ -4,6 +4,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -26,7 +27,7 @@ import java.util.Locale
 import java.util.TimeZone
 
 fun formatMatchDate(dateString: String?): String {
-    if (dateString == null) return "Data a definir"
+    if (dateString == null) return "A definir"
     return try {
         val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
         parser.timeZone = TimeZone.getTimeZone("UTC")
@@ -34,9 +35,9 @@ fun formatMatchDate(dateString: String?): String {
 
         val formatter = SimpleDateFormat("dd/MM • HH:mm", Locale("pt", "BR"))
         formatter.timeZone = TimeZone.getDefault()
-        parsedDate?.let { formatter.format(it) } ?: "Data a definir"
-    } catch (e: Exception) {
-        "Horário indefinido"
+        parsedDate?.let { formatter.format(it) } ?: "A definir"
+    } catch (_: Exception) {
+        "Indefinido"
     }
 }
 
@@ -46,17 +47,18 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+
+
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(CardHeader)
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -65,7 +67,7 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
                         AsyncImage(
                             model = match.league.image_url,
                             contentDescription = null,
-                            modifier = Modifier.size(80.dp),
+                            modifier = Modifier.size(20.dp),
                             contentScale = ContentScale.Fit
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -74,49 +76,54 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
                     Text(
                         text = displayGame,
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = AccentBlue,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextSecondary,
                         letterSpacing = 1.sp
                     )
                 }
                 StatusBadge(status = match.status, streamUrl = match.stream_url)
             }
-            Spacer(modifier = Modifier.height(20.dp))
+
+
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     TeamProfile(name = match.team_a.name, imageUrl = match.team_a.image_url)
                 }
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = 12.dp)
                 ) {
                     if (match.status.lowercase() == "not_started") {
                         Text(
-                            text = "VS",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Black,
+                            text = formatMatchDate(match.begin_at),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "BO${match.number_of_games ?: 3}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
                             color = TextSecondary
                         )
                     } else {
                         Text(
                             text = "${match.team_a_score} - ${match.team_b_score}",
-                            fontSize = 28.sp,
+                            fontSize = 32.sp,
                             fontWeight = FontWeight.Black,
                             color = TextPrimary
                         )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = formatMatchDate(match.begin_at),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TextSecondary
-                    )
                 }
+
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     TeamProfile(name = match.team_b.name, imageUrl = match.team_b.image_url)
                 }
@@ -130,9 +137,9 @@ fun TeamProfile(name: String, imageUrl: String?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .size(64.dp)
+                .size(56.dp)
                 .background(DarkBackground, CircleShape)
-                .padding(12.dp),
+                .padding(10.dp),
             contentAlignment = Alignment.Center
         ) {
             AsyncImage(
@@ -142,11 +149,11 @@ fun TeamProfile(name: String, imageUrl: String?) {
                 contentScale = ContentScale.Fit
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = name,
             fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color = TextPrimary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -173,7 +180,7 @@ fun StatusBadge(status: String, streamUrl: String?) {
 
     Box(
         modifier = Modifier
-            .background(badgeColor.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+            .background(if (isLive) badgeColor.copy(alpha = 0.15f) else Color.Transparent, RoundedCornerShape(8.dp))
             .then(
                 if (isLive && !streamUrl.isNullOrBlank()) {
                     Modifier.clickable {
@@ -187,7 +194,7 @@ fun StatusBadge(status: String, streamUrl: String?) {
                     Modifier
                 }
             )
-            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (isLive) {
@@ -198,7 +205,7 @@ fun StatusBadge(status: String, streamUrl: String?) {
                 text = displayText,
                 color = badgeColor,
                 fontSize = 10.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Black,
                 letterSpacing = 0.5.sp
             )
         }
@@ -219,7 +226,7 @@ fun BlinkingDot() {
     )
     Box(
         modifier = Modifier
-            .size(8.dp)
+            .size(6.dp)
             .alpha(alpha)
             .background(color = LiveRed, shape = CircleShape)
     )
@@ -229,37 +236,38 @@ fun BlinkingDot() {
 fun SkeletonMatchCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(CardHeader)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)).shimmerEffect())
+                    Box(modifier = Modifier.size(20.dp).clip(CircleShape).shimmerEffect())
                     Spacer(modifier = Modifier.width(8.dp))
                     Box(modifier = Modifier.height(14.dp).width(40.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
                 }
-                Box(modifier = Modifier.height(24.dp).width(70.dp).clip(RoundedCornerShape(12.dp)).shimmerEffect())
+                Box(modifier = Modifier.height(16.dp).width(60.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
             }
-            Spacer(modifier = Modifier.height(20.dp))
+
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(modifier = Modifier.size(64.dp).clip(CircleShape).shimmerEffect())
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Box(modifier = Modifier.size(56.dp).clip(CircleShape).shimmerEffect())
+                        Spacer(modifier = Modifier.height(10.dp))
                         Box(modifier = Modifier.height(14.dp).width(60.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
                     }
                 }
@@ -267,14 +275,12 @@ fun SkeletonMatchCard() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    Box(modifier = Modifier.height(28.dp).width(30.dp).clip(RoundedCornerShape(6.dp)).shimmerEffect())
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Box(modifier = Modifier.height(12.dp).width(80.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                    Box(modifier = Modifier.height(24.dp).width(40.dp).clip(RoundedCornerShape(6.dp)).shimmerEffect())
                 }
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(modifier = Modifier.size(64.dp).clip(CircleShape).shimmerEffect())
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Box(modifier = Modifier.size(56.dp).clip(CircleShape).shimmerEffect())
+                        Spacer(modifier = Modifier.height(10.dp))
                         Box(modifier = Modifier.height(14.dp).width(60.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
                     }
                 }

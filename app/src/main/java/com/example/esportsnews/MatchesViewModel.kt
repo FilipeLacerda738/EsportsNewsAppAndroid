@@ -61,7 +61,6 @@ class MatchesViewModel : ViewModel() {
         checkForUpdates()
     }
 
-
     private fun checkForUpdates() {
         viewModelScope.launch {
             try {
@@ -79,6 +78,7 @@ class MatchesViewModel : ViewModel() {
             }
         }
     }
+
     fun dismissUpdateDialog() {
         _updateAvailable.value = null
     }
@@ -91,7 +91,8 @@ class MatchesViewModel : ViewModel() {
                 val detail = RetrofitClient.api.getMatchDetails(matchId)
                 _matchDetail.value = detail
             } catch (e: Exception) {
-                _detailError.value = "Erro ao carregar detalhes: ${e.message}"
+
+                _detailError.value = "Não foi possível carregar os detalhes desta partida."
             } finally {
                 _isDetailLoading.value = false
             }
@@ -125,7 +126,8 @@ class MatchesViewModel : ViewModel() {
                 allFetchedMatches = result
                 applyFilters()
             } catch (e: Exception) {
-                _error.value = "Erro de conexão: ${e.message}"
+
+                _error.value = "Sem conexão com nossos servidores. Verifique sua rede e tente novamente."
             } finally {
                 _isLoading.value = false
                 _isRefreshing.value = false

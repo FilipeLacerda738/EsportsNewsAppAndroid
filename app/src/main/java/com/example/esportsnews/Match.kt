@@ -1,5 +1,8 @@
 package com.example.esportsnews
 
+import androidx.annotation.Keep
+
+@Keep
 data class Match(
     val id: Int,
     val pandascore_id: Int,
@@ -11,9 +14,11 @@ data class Match(
     val stream_url: String?,
     val team_a: Team,
     val team_b: Team,
-    val league: League?
+    val league: League?,
+    val number_of_games: Int? = null
 )
 
+@Keep
 data class Team(
     val id: Int,
     val name: String,
@@ -21,6 +26,7 @@ data class Team(
     val image_url: String?
 )
 
+@Keep
 data class League(
     val id: Int,
     val name: String,
