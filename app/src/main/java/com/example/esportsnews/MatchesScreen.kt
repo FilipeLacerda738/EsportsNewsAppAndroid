@@ -234,8 +234,32 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(6) {
-                        SkeletonMatchCard()
+                    items(items = matches, key = { match -> match.id }) { match ->
+                        ModernMatchCard(match = match, onClick = { onMatchClick(match.id) })
+                    }
+                    item {
+                        val isLoadingNextPage by viewModel.isLoadingNextPage.collectAsState()
+                        LaunchedEffect(Unit) {
+                            viewModel.loadNextPage()
+                        }
+
+                        if (isLoadingNextPage) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = AccentBlue,
+                                    modifier = Modifier.size(32.dp),
+                                    strokeWidth = 3.dp
+                                )
+                            }
+                        } else {
+
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
                     }
                 }
             } else if (error != null) {

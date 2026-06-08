@@ -2,7 +2,6 @@ package com.example.esportsnews
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.esportsnews.BuildConfig
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +22,9 @@ class MatchesViewModel : ViewModel() {
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
+    private val _isLoadingNextPage = MutableStateFlow(false)
+    val isLoadingNextPage: StateFlow<Boolean> = _isLoadingNextPage
+
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
@@ -40,7 +42,10 @@ class MatchesViewModel : ViewModel() {
 
     val dateList: List<LocalDate> = List(8) { LocalDate.now().minusDays(1).plusDays(it.toLong()) }
 
-    private var allFetchedMatches: List<Match> = emptyList()
+    private var allFetchedMatches = mutableListOf<Match>()
+    private var currentPage = 1
+    private var isLastPage = false
+
     private var pollingJob: Job? = null
 
     private val _matchDetail = MutableStateFlow<MatchDetail?>(null)
@@ -68,14 +73,11 @@ class MatchesViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     val serverVersion = response.body()?.version
                     val currentVersion = BuildConfig.VERSION_NAME
-
                     if (serverVersion != null && serverVersion != currentVersion) {
                         _updateAvailable.value = response.body()
                     }
                 }
-            } catch (e: Exception) {
-
-            }
+            } catch (e: Exception) {}
         }
     }
 
@@ -91,7 +93,6 @@ class MatchesViewModel : ViewModel() {
                 val detail = RetrofitClient.api.getMatchDetails(matchId)
                 _matchDetail.value = detail
             } catch (e: Exception) {
-
                 _detailError.value = "Não foi possível carregar os detalhes desta partida."
             } finally {
                 _isDetailLoading.value = false
@@ -104,10 +105,23 @@ class MatchesViewModel : ViewModel() {
         _detailError.value = null
     }
 
-    fun fetchMatches(isRefresh: Boolean = false) {
+    fun fetchMatches(isRefresh: Boolean = false, loadNextPage: Boolean = false) {
         viewModelScope.launch {
-            if (isRefresh) _isRefreshing.value = true else _isLoading.value = true
+            if (loadNextPage && (_isLoadingNextPage.value || isLastPage)) return@launch
+
+            if (isRefresh) {
+                _isRefreshing.value = true
+                currentPage = 1
+                isLastPage = false
+            } else if (loadNextPage) {
+                _isLoadingNextPage.value = true
+                currentPage++
+            } else {
+                _isLoading.value = true
+            }
+
             _error.value = null
+
             try {
                 val apiStatus = when (_selectedStatus.value) {
                     "Ao Vivo" -> "running"
@@ -115,29 +129,47 @@ class MatchesViewModel : ViewModel() {
                     "Em breve" -> "not_started"
                     else -> null
                 }
-
                 val apiGame = when(_selectedGame.value){
                     "Todos" -> null
                     "CS2" -> "CSGO"
                     else -> _selectedGame.value
                 }
 
-                val result = RetrofitClient.api.getMatches(game = apiGame, status = apiStatus)
-                allFetchedMatches = result
-                applyFilters()
-            } catch (e: Exception) {
+                val result = RetrofitClient.api.getMatches(
+                    page = currentPage,
+                    game = apiGame,
+                    status = apiStatus
+                )
 
+                isLastPage = !result.hasMore
+
+                if (isRefresh || (!isRefresh && !loadNextPage)) {
+                    allFetchedMatches.clear()
+                    allFetchedMatches.addAll(result.items)
+                } else {
+                    allFetchedMatches.addAll(result.items)
+                }
+
+                applyFilters()
+
+            } catch (e: Exception) {
                 _error.value = "Sem conexão com nossos servidores. Verifique sua rede e tente novamente."
+                if (loadNextPage) currentPage--
             } finally {
                 _isLoading.value = false
                 _isRefreshing.value = false
+                _isLoadingNextPage.value = false
             }
         }
     }
 
+    fun loadNextPage() {
+        fetchMatches(loadNextPage = true)
+    }
+
     fun onGameFilterSelected(game: String) {
         _selectedGame.value = game
-        fetchMatches()
+        fetchMatches(isRefresh = true)
     }
 
     fun onStatusFilterSelected(status: String) {
@@ -145,7 +177,7 @@ class MatchesViewModel : ViewModel() {
         if (status == "Ao Vivo") {
             _selectedDate.value = null
         }
-        fetchMatches()
+        fetchMatches(isRefresh = true)
         managePolling()
     }
 
@@ -167,7 +199,7 @@ class MatchesViewModel : ViewModel() {
         val query = _searchQuery.value.trim().lowercase()
         val targetDate = _selectedDate.value
 
-        var filteredList = allFetchedMatches
+        var filteredList = allFetchedMatches.toList()
 
         if (query.isNotEmpty()) {
             filteredList = filteredList.filter { match ->
@@ -194,7 +226,7 @@ class MatchesViewModel : ViewModel() {
 
     private fun managePolling() {
         pollingJob?.cancel()
-        if (_selectedStatus.value == "Ao Vivo" || _selectedStatus.value == "Todos") {
+        if ((_selectedStatus.value == "Ao Vivo" || _selectedStatus.value == "Todos") && currentPage == 1) {
             pollingJob = viewModelScope.launch {
                 while (isActive) {
                     delay(30000)

@@ -22,12 +22,18 @@ fun getAppVersionName(): String {
         process.waitFor()
         val result = process.inputStream.bufferedReader().readText().trim()
 
+        println("GIT TAG RESULT: '$result'")
+
         if (result.contains("fatal") || result.contains("error") || result.isEmpty()) {
+            println("GIT TAG FAILED: Retornando 1.0.0 como fallback.")
             "1.0.0"
         } else {
-            result.replace("v", "")
+            val finalVersion = result.replace("v", "")
+            println("GIT TAG SUCESSO: Retornando $finalVersion")
+            finalVersion
         }
     } catch (e: Exception) {
+        println("GIT COMMAND CRASH: ${e.message}")
         "1.0.0"
     }
 }

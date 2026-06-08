@@ -18,15 +18,24 @@ data class AppVersion(
     @SerializedName("release_notes") val releaseNotes: String
 )
 
+data class PaginatedMatchResponse(
+    @SerializedName("total") val total: Int,
+    @SerializedName("page") val page: Int,
+    @SerializedName("size") val size: Int,
+    @SerializedName("has_more") val hasMore: Boolean,
+    @SerializedName("items") val items: List<Match>
+)
+
 interface ApiService {
     @Headers("Cache-Control: no-cache")
     @GET("api/v1/matches/")
     suspend fun getMatches(
+        @Query("page") page: Int,
         @Query("game") game: String?,
         @Query("status") status: String?,
-        @Query("limit") limit: Int = 50,
+        @Query("limit") limit: Int = 15,
         @Query("data_calendario") dataCalendario: String? = null
-    ): List<Match>
+    ): PaginatedMatchResponse
 
     @Headers("Cache-Control: no-cache")
     @GET("api/v1/matches/{match_id}/details")
