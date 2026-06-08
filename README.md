@@ -1,96 +1,62 @@
-# 🎮 Esports Hub - Cliente Android
+# 🎮 Esports Hub - Android Client
 
 <div align="center">
 
-### O seu portal para acompanhar partidas de CS2 e VALORANT em tempo real.
+### O seu portal de bolso para acompanhar partidas de eSports em tempo real.
 
-[![Licença](https://img.shields.io/github/license/FilipeLacerda738/EsportsNewsAppAndroid?style=for-the-badge&logo=gnu&color=2B3137&labelColor=161B22&cacheSeconds=1)](LICENSE)
-[![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=for-the-badge\&logo=android\&logoColor=white\&labelColor=161B22)](https://www.android.com/)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-7F52FF?style=for-the-badge\&logo=kotlin\&logoColor=white\&labelColor=161B22)](https://kotlinlang.org/)
+[![Licença](https://img.shields.io/github/license/FilipeLacerda738/EsportsNewsAppAndroid?style=for-the-badge&logo=gnu&color=2B3137&labelColor=161B22)](LICENSE)
+[![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white&labelColor=161B22)](https://www.android.com/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white&labelColor=161B22)](https://kotlinlang.org/)
+
 <a href="https://github.com/FilipeLacerda738/EsportsNewsAppAndroid/releases/latest">
     <img src="https://img.shields.io/github/v/release/FilipeLacerda738/EsportsNewsAppAndroid?label=Baixar%20APK&logo=android&style=for-the-badge&color=3DDC84&labelColor=161B22" alt="Baixar APK">
 </a>
-</div>
+
+<br><br>
+<img src="assets/Demo_app.gif" width="200" />
 
 ---
 
-> 🚀 **O backend também é Open Source!**
-> Este aplicativo consome uma API dedicada construída em **Python (FastAPI)** e **PostgreSQL**.
->
-> 🔗 [Repositório da API do Esports Hub](https://github.com/FilipeLacerda738/esports-pro-api.git)
+> 🚀 **Ecossistema Completo (Fullstack)**
+> Este aplicativo não consome APIs de terceiros diretamente. Ele é alimentado por um **Backend Próprio em Python (FastAPI)**, construído para proteger o aplicativo contra limites de requisição e entregar dados em milissegundos.
+> 🔗 [Conheça a Engenharia do Backend aqui](https://github.com/FilipeLacerda738/esports-pro-api.git)
 
 ---
 
-# 📚 Tabela de Conteúdos
+## 🎯 O Desafio e o Produto
 
-* [📱 Visão Geral](#-visão-geral)
-* [🛠 Stack Tecnológico](#-stack-tecnológico)
-* [✨ Características](#-características)
-* [⚙️ Instalação](#️-instalação)
-* [🌐 Arquitetura de Rede](#-arquitetura-de-rede)
-* [🤝 Contribuições](#-contribuições)
-* [📄 Licença](#-licença)
+O **Esports Hub** nasceu para resolver um problema claro: a maioria dos aplicativos de resultados esportivos são lentos, poluídos e gastam muitos dados móveis. 
 
----
+Este projeto foi construído utilizando o estado da arte do desenvolvimento Android nativo (**Jetpack Compose, MVVM, Coroutines**) para entregar uma experiência fluida, leve e com foco total na retenção do usuário.
 
-# 📱 Visão Geral
+## ⚡ Engenharia e Otimizações de Destaque
 
-O **Esports Hub** é um aplicativo Android nativo desenvolvido para entregar:
-
-* Resultados ao vivo
-* Calendários de partidas
-* Status em tempo real
-* Filtros por jogo
-* Atualizações automáticas
-
-Tudo isso utilizando o ecossistema moderno Android com:
-
-* Jetpack Compose
-* Coroutines
-* StateFlow
-* MVVM
-* Material Design 3
-
-O projeto serve tanto como aplicativo funcional quanto como base de estudos para arquitetura Android moderna.
+* 📉 **App Size (De 90MB para 15MB):** Implementação rigorosa de regras do `R8/ProGuard` e `shrinkResources`. O aplicativo final teve seu tamanho reduzido em **mais de 80%**, otimizando a taxa de conversão sem quebrar a desserialização do Retrofit via anotações `@Keep`.
+* 🛡️ **Segurança e Prevenção contra Vazamentos:** Tratamento de erros "cego" na camada do `ViewModel`. Em caso de falha de rede, o aplicativo intercepta exceções do OkHttp/Retrofit para garantir que IPs do servidor ou URLs de API jamais sejam expostos na tela do usuário.
+* 🎨 **Design System "Cinza Chumbo":** Transição completa para um tema escuro focado em leitura dinâmica e ergonomia visual, inspirado em Strafe/HLTV.
 
 ---
 
-# 🛠 Stack Tecnológico
+## 🛠 Stack Tecnológico
 
-| Interface         | Arquitetura & Dados | Rede     |
-| ----------------- | ------------------- | -------- |
-| Jetpack Compose   | MVVM                | Retrofit |
-| Material Design 3 | StateFlow           | OkHttp   |
-| Coil              | Coroutines          | Gson     |
+| Interface Gráfica | Arquitetura & Estado | Conectividade |
+| :--- | :--- | :--- |
+| **Jetpack Compose** (Material 3) | **MVVM** (Model-View-ViewModel) | **Retrofit 2** + Gson |
+| **Coil** (Cache e Imagens Assíncronas) | **StateFlow** (Reatividade) | **OkHttp** (Interceptação) |
+| **Componentes Customizados** | **Coroutines** (Concorrência) | **Injeção Dinâmica de URLs** |
+
+---
+
+## 🗺️ Roadmap
+
+O aplicativo está em constante evolução. Aqui estão os próximos passos de engenharia e funcionalidades:
+
+* **[Fase Atual] v1.4.0 (Fluidez e Retenção):** Implementação de Cache Offline (Room Database) para abertura instantânea e Paginação (Infinite Scroll) para economia de dados.
+* **[Fase 2] Visão Analítica:** Páginas de detalhes com status de mapas individuais (MD3), acompanhamento de chaves (Brackets) e gráficos de momento.
+* **[Fase 3] Monetização e Engajamento:** Integração de *Odds* em tempo real, painel de afiliados para plataformas regulamentadas e sistema de *Pick'ems*.
 
 ---
 
-# ✨ Características
-
-## 🔴 Atualizações em Tempo Real
-
-Sistema de polling inteligente para atualização automática de partidas ao vivo.
-
-## 📅 Calendário Dinâmico
-
-Filtragem rápida por dias da semana diretamente na interface.
-
-## 🎮 Filtros por Jogo
-
-Alternância instantânea entre:
-
-* Counter-Strike 2
-* VALORANT
-
-## 🎨 UI Moderna
-
-Interface construída totalmente em Compose utilizando Material Design 3.
-
-## 🔄 Pull To Refresh
-
-Atualização manual utilizando gestos nativos do Android.
-
----
 
 # ⚙️ Instalação
 
@@ -134,7 +100,7 @@ O aplicativo alterna automaticamente entre ambiente local e produção através 
 | Ambiente | URL                                     |
 | -------- | --------------------------------------- |
 | Debug    | `http://10.0.2.2:8000/`                 |
-| Release  | `https://esports-pro-api.onrender.com/` |
+| Release  | `https://seuDeploy.com/` |
 
 ---
 
