@@ -4,7 +4,7 @@
 
 🇺🇸 English | 🇧🇷 [Português](./README.md)
 
-### Your pocket portal for following eSports matches in real time.
+### Your portal for following eSports matches in real time.
 
 [![License](https://img.shields.io/github/license/FilipeLacerda738/EsportsNewsAppAndroid?style=for-the-badge\&logo=gnu\&color=2B3137\&labelColor=161B22)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=for-the-badge\&logo=android\&logoColor=white\&labelColor=161B22)](https://www.android.com/)
