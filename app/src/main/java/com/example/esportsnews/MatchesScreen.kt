@@ -27,6 +27,7 @@ import com.example.esportsnews.ui.theme.*
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
+import com.example.esportsnews.model.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -228,41 +229,18 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (isLoading && !isRefreshing) {
+            if (isLoading && !isRefreshing && matches.isEmpty()) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(items = matches, key = { match -> match.id }) { match ->
-                        ModernMatchCard(match = match, onClick = { onMatchClick(match.id) })
-                    }
-                    item {
-                        val isLoadingNextPage by viewModel.isLoadingNextPage.collectAsState()
-                        LaunchedEffect(Unit) {
-                            viewModel.loadNextPage()
-                        }
-
-                        if (isLoadingNextPage) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    color = AccentBlue,
-                                    modifier = Modifier.size(32.dp),
-                                    strokeWidth = 3.dp
-                                )
-                            }
-                        } else {
-
-                            Spacer(modifier = Modifier.height(24.dp))
-                        }
+                    items(8) {
+                        SkeletonMatchCard() 
                     }
                 }
-            } else if (error != null) {
+            } 
+            else if (error != null && matches.isEmpty()) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -300,7 +278,8 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                         Text("TENTAR NOVAMENTE", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
-            } else {
+            } 
+            else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
@@ -308,6 +287,31 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                 ) {
                     items(items = matches, key = { match -> match.id }) { match ->
                         ModernMatchCard(match = match, onClick = { onMatchClick(match.id) })
+                    }
+                    item {
+                        val isLoadingNextPage by viewModel.isLoadingNextPage.collectAsState()
+                        if (matches.isNotEmpty()) {
+                            LaunchedEffect(matches.size) {
+                                viewModel.loadNextPage()
+                            }
+                        }
+
+                        if (isLoadingNextPage) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = AccentBlue,
+                                    modifier = Modifier.size(32.dp),
+                                    strokeWidth = 3.dp
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
                     }
                 }
             }

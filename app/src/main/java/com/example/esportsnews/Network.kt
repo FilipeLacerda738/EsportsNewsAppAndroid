@@ -1,5 +1,6 @@
 package com.example.esportsnews
 
+import com.example.esportsnews.model.*
 import com.google.gson.annotations.SerializedName
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient

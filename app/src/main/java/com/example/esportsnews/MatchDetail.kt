@@ -1,4 +1,4 @@
-package com.example.esportsnews
+package com.example.esportsnews.model
 
 import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
@@ -13,6 +13,9 @@ data class MatchDetail(
     @SerializedName("team_a_score") val teamAScore: Int,
     @SerializedName("team_b_score") val teamBScore: Int,
     @SerializedName("stream_url") val streamUrl: String?,
+    val streams: List<Stream>? = null,
+    val tier: String? = null,
+    val prizepool: String? = null,
     val league: League?,
     @SerializedName("team_a") val teamA: TeamDetail?,
     @SerializedName("team_b") val teamB: TeamDetail?,
@@ -25,6 +28,8 @@ data class TeamDetail(
     val name: String,
     val acronym: String?,
     @SerializedName("image_url") val imageUrl: String?,
+    @SerializedName("dark_mode_image_url") val darkModeImageUrl: String? = null,
+    val location: String? = null,
     val players: List<Player>
 )
 

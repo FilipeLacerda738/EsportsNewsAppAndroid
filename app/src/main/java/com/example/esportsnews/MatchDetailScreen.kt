@@ -1,8 +1,10 @@
 package com.example.esportsnews
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,11 +17,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import coil.compose.AsyncImage
+import com.example.esportsnews.model.*
 import com.example.esportsnews.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,7 +53,7 @@ fun MatchDetailScreen(
                         viewModel.clearMatchDetails()
                         onNavigateBack()
                     }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -104,7 +111,14 @@ fun MatchDetailContent(match: MatchDetail) {
 
                 TeamLogoAndName(team = match.teamB, modifier = Modifier.weight(1f))
             }
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        if (!match.streams.isNullOrEmpty()) {
+            item {
+                StreamChipsSection(streams = match.streams)
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
 
         item {
@@ -130,6 +144,7 @@ fun MatchDetailContent(match: MatchDetail) {
             }
             Spacer(modifier = Modifier.height(32.dp))
         }
+
         if (match.games.isNotEmpty()) {
             item {
                 Text("MAPAS", fontWeight = FontWeight.Bold, fontSize = 18.sp)
@@ -179,13 +194,94 @@ fun MatchDetailContent(match: MatchDetail) {
 }
 
 @Composable
+fun StreamChipsSection(streams: List<Stream>) {
+    val uriHandler = LocalUriHandler.current
+
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "ASSISTIR AO VIVO",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Black,
+            color = Color.Gray,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(streams) { stream ->
+                val url = stream.raw_url ?: ""
+
+                val platformName = when {
+                    url.contains("twitch", ignoreCase = true) -> "Twitch"
+                    url.contains("youtube", ignoreCase = true) -> "YouTube"
+                    url.contains("kick", ignoreCase = true) -> "Kick"
+                    else -> "Web"
+                }
+
+                val platformColor = when (platformName) {
+                    "Twitch" -> Color(0xFF9146FF)
+                    "YouTube" -> Color(0xFFFF0000)
+                    "Kick" -> Color(0xFF53FC18)
+                    else -> Color.DarkGray
+                }
+
+                val textColor = if (platformColor == Color(0xFF53FC18)) Color.Black else Color.White
+
+                val channelName = if (platformName == "YouTube" && url.contains("watch")) {
+                    "Canal Oficial"
+                } else {
+                    url.trimEnd('/').substringAfterLast("/").replaceFirstChar { it.uppercase() }
+                }.ifBlank { "Stream" }
+
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(platformColor.copy(alpha = 0.15f))
+                        .clickable {
+                            try { uriHandler.openUri(url) } catch (e: Exception) { e.printStackTrace() }
+                        }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(platformColor, RoundedCornerShape(50))
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Text(
+                        text = "$channelName • $platformName",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Text(
+                        text = "[${stream.language.uppercase()}]",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black,
+                        color = textColor.copy(alpha = 0.7f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun TeamLogoAndName(team: TeamDetail?, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
         AsyncImage(
-            model = team?.imageUrl ?: "https://via.placeholder.com/150",
+            model = team?.darkModeImageUrl ?: team?.imageUrl ?: "https://via.placeholder.com/150",
             contentDescription = "Logo ${team?.name}",
             modifier = Modifier
                 .size(64.dp)
@@ -194,11 +290,25 @@ fun TeamLogoAndName(team: TeamDetail?, modifier: Modifier = Modifier) {
             contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = team?.acronym ?: team?.name ?: "TBD",
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (team?.location != null) {
+                AsyncImage(
+                    model = "https://flagcdn.com/w40/${team.location.lowercase()}.png",
+                    contentDescription = null,
+                    modifier = Modifier
+                        .height(14.dp)
+                        .width(18.dp)
+                        .clip(RoundedCornerShape(2.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            Text(
+                text = team?.acronym ?: team?.name ?: "TBD",
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 

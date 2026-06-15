@@ -4,7 +4,6 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -14,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
@@ -21,6 +21,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.esportsnews.model.Match
+import com.example.esportsnews.model.Team
 import com.example.esportsnews.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -52,8 +54,6 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -63,9 +63,10 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (match.league?.image_url != null) {
+                    val leagueLogo = match.league?.dark_mode_image_url ?: match.league?.image_url
+                    if (leagueLogo != null) {
                         AsyncImage(
-                            model = match.league.image_url,
+                            model = leagueLogo,
                             contentDescription = null,
                             modifier = Modifier.size(20.dp),
                             contentScale = ContentScale.Fit
@@ -80,10 +81,31 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
                         color = TextSecondary,
                         letterSpacing = 1.sp
                     )
+
+                    if (match.tier != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        val tierColor = when (match.tier.lowercase()) {
+                            "s" -> Color(0xFFFFD700)
+                            "a" -> Color(0xFFC0C0C0)
+                            "b" -> Color(0xFFCD7F32)
+                            else -> TextSecondary
+                        }
+                        Box(
+                            modifier = Modifier
+                                .background(tierColor.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "TIER ${match.tier.uppercase()}",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Black,
+                                color = tierColor
+                            )
+                        }
+                    }
                 }
                 StatusBadge(status = match.status, streamUrl = match.stream_url)
             }
-
 
             Row(
                 modifier = Modifier
@@ -93,7 +115,7 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    TeamProfile(name = match.team_a.name, imageUrl = match.team_a.image_url)
+                    TeamProfile(team = match.team_a)
                 }
 
                 Column(
@@ -125,7 +147,7 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
                 }
 
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    TeamProfile(name = match.team_b.name, imageUrl = match.team_b.image_url)
+                    TeamProfile(team = match.team_b)
                 }
             }
         }
@@ -133,7 +155,7 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
 }
 
 @Composable
-fun TeamProfile(name: String, imageUrl: String?) {
+fun TeamProfile(team: Team) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
@@ -143,21 +165,35 @@ fun TeamProfile(name: String, imageUrl: String?) {
             contentAlignment = Alignment.Center
         ) {
             AsyncImage(
-                model = imageUrl,
+                model = team.dark_mode_image_url ?: team.image_url,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit
             )
         }
         Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = name,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (team.location != null) {
+                AsyncImage(
+                    model = "https://flagcdn.com/w40/${team.location.lowercase()}.png",
+                    contentDescription = null,
+                    modifier = Modifier
+                        .height(12.dp)
+                        .width(16.dp)
+                        .clip(RoundedCornerShape(2.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+            Text(
+                text = team.name,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
