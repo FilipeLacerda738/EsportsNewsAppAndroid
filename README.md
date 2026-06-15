@@ -4,7 +4,7 @@
 
 🇧🇷 Português | 🇺🇸 [English Version](./README.en.md)
 
-### O seu portal de bolso para acompanhar partidas de eSports em tempo real.
+### O seu portal para acompanhar partidas de eSports em tempo real.
 
 [![Licença](https://img.shields.io/github/license/FilipeLacerda738/esports-pro-api?style=flat-square&logo=gnu&color=2B3137&labelColor=161B22)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white&labelColor=161B22)](https://www.android.com/)
