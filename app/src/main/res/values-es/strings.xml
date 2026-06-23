@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">Esports Hub</string>
+    <string name="app_name_caps">ESPORTS HUB</string>
+    <string name="beta_tag">BETA</string>
+
+    <string name="search_team">Buscar equipo...</string>
+    <string name="filter_all">Todos</string>
+    <string name="status_live">En Vivo</string>
+    <string name="status_upcoming">Próximamente</string>
+    <string name="status_finished">Finalizados</string>
+    <string name="to_be_defined">Por definir</string>
+    <string name="undefined">Indefinido</string>
+    <string name="tier_format">TIER %1$s</string>
+    <string name="best_of_format">BO%1$d</string>
+
+    <string name="update_available_title">Actualización Disponible</string>
+    <string name="update_available_desc">¡La versión %1$s ya está disponible!\n\nNovedades:\n%2$s\n\n¿Quieres descargar el APK ahora?</string>
+    <string name="update_download_yes">Sí, Descargar</string>
+    <string name="update_download_no">Ahora no</string>
+
+    <string name="error_oops">¡Ups! Algo salió mal.</string>
+    <string name="error_unknown_fallback">Error desconocido</string>
+    <string name="try_again">INTENTAR DE NUEVO</string>
+    <string name="error_match_details">No se pudieron cargar los detalles de este partido.</string>
+    <string name="error_connection">Sin conexión a nuestros servidores. Verifica tu red e inténtalo de nuevo.</string>
+
+    <string name="match_detail_title">Detalles del Partido</string>
+    <string name="cd_back">Atrás</string>
+    <string name="rosters_title">ALINEACIONES</string>
+    <string name="maps_title">MAPAS</string>
+    <string name="map_name_with_number">Mapa %1$s - %2$s</string>
+    <string name="map_number_only">Mapa %1$s</string>
+    <string name="watch_live_title">VER EN VIVO</string>
+    <string name="official_channel">Canal Oficial</string>
+    <string name="stream_fallback">Transmisión</string>
+    <string name="tbd">TBD</string>
+    <string name="cd_team_logo">Logo %1$s</string>
+    <string name="cd_player_photo">Foto %1$s</string>
+</resources>

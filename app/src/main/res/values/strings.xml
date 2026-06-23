@@ -1,3 +1,40 @@
 <resources>
     <string name="app_name">Esports Hub</string>
+    <string name="app_name_caps">ESPORTS HUB</string>
+    <string name="beta_tag">BETA</string>
+
+    <string name="search_team">Buscar time...</string>
+    <string name="filter_all">Todos</string>
+    <string name="status_live">Ao Vivo</string>
+    <string name="status_upcoming">Em breve</string>
+    <string name="status_finished">Finalizados</string>
+    <string name="to_be_defined">A definir</string>
+    <string name="undefined">Indefinido</string>
+    <string name="tier_format">TIER %1$s</string>
+    <string name="best_of_format">BO%1$d</string>
+
+    <string name="update_available_title">Atualização Disponível</string>
+    <string name="update_available_desc">A versão %1$s já está disponível!\n\nNovidades:\n%2$s\n\nDeseja baixar o APK agora?</string>
+    <string name="update_download_yes">Sim, Baixar</string>
+    <string name="update_download_no">Não agora</string>
+
+    <string name="error_oops">Ops! Algo deu errado.</string>
+    <string name="error_unknown_fallback">Erro desconhecido</string>
+    <string name="try_again">TENTAR NOVAMENTE</string>
+    <string name="error_match_details">Não foi possível carregar os detalhes desta partida.</string>
+    <string name="error_connection">Sem conexão com nossos servidores. Verifique sua rede e tente novamente.</string>
+
+    <string name="match_detail_title">Detalhes da Partida</string>
+    <string name="cd_back">Voltar</string>
+    <string name="rosters_title">ESCALAÇÕES</string>
+    <string name="maps_title">MAPAS</string>
+    <string name="map_name_with_number">Mapa %1$s - %2$s</string>
+    <string name="map_number_only">Mapa %1$s</string>
+    <string name="watch_live_title">ASSISTIR AO VIVO</string>
+    <string name="official_channel">Canal Oficial</string>
+    <string name="stream_fallback">Stream</string>
+    <string name="tbd">TBD</string>
+    <string name="cd_team_logo">Logo %1$s</string>
+    <string name="cd_player_photo">Foto %1$s</string>
+
 </resources>

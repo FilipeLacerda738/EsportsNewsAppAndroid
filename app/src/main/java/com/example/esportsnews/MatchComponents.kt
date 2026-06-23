@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -28,18 +29,17 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 
-fun formatMatchDate(dateString: String?): String {
-    if (dateString == null) return "A definir"
+fun formatMatchDate(dateString: String?, tbdString: String, undefinedString: String): String {
+    if (dateString == null) return tbdString
     return try {
         val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
         parser.timeZone = TimeZone.getTimeZone("UTC")
         val parsedDate = parser.parse(dateString)
-
-        val formatter = SimpleDateFormat("dd/MM • HH:mm", Locale("pt", "BR"))
+        val formatter = SimpleDateFormat("dd/MM • HH:mm", Locale.getDefault())
         formatter.timeZone = TimeZone.getDefault()
-        parsedDate?.let { formatter.format(it) } ?: "A definir"
+        parsedDate?.let { formatter.format(it) } ?: tbdString
     } catch (_: Exception) {
-        "Indefinido"
+        undefinedString
     }
 }
 
@@ -96,7 +96,7 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text(
-                                text = "TIER ${match.tier.uppercase()}",
+                                text = stringResource(R.string.tier_format, match.tier.uppercase()),
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Black,
                                 color = tierColor
@@ -124,14 +124,18 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
                 ) {
                     if (match.status.lowercase() == "not_started") {
                         Text(
-                            text = formatMatchDate(match.begin_at),
+                            text = formatMatchDate(
+                                dateString = match.begin_at,
+                                tbdString = stringResource(R.string.to_be_defined),
+                                undefinedString = stringResource(R.string.undefined)
+                            ),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "BO${match.number_of_games ?: 3}",
+                            text = stringResource(R.string.best_of_format, match.number_of_games ?: 3),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = TextSecondary
@@ -207,11 +211,12 @@ fun StatusBadge(status: String, streamUrl: String?) {
         else -> AccentBlue
     }
     val displayText = when (status.lowercase()) {
-        "running" -> "AO VIVO"
-        "finished" -> "FINALIZADO"
-        "not_started" -> "EM BREVE"
+        "running" -> stringResource(R.string.status_live).uppercase()
+        "finished" -> stringResource(R.string.status_finished).uppercase()
+        "not_started" -> stringResource(R.string.status_upcoming).uppercase()
         else -> status.uppercase()
     }
+
     val uriHandler = LocalUriHandler.current
 
     Box(

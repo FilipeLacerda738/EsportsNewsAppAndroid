@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,13 +18,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import coil.compose.AsyncImage
 import com.example.esportsnews.model.*
 import com.example.esportsnews.ui.theme.*
@@ -47,13 +45,16 @@ fun MatchDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detalhes da Partida", fontSize = 18.sp) },
+                title = { Text(stringResource(R.string.match_detail_title), fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = {
                         viewModel.clearMatchDetails()
                         onNavigateBack()
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_back)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -72,7 +73,7 @@ fun MatchDetailScreen(
         ) {
             when {
                 isLoading -> CircularProgressIndicator()
-                error != null -> Text(text = error ?: "Erro desconhecido", color = MaterialTheme.colorScheme.error)
+                error != null -> Text(text = error ?: stringResource(R.string.error_unknown_fallback), color = MaterialTheme.colorScheme.error)
                 detail != null -> MatchDetailContent(match = detail!!)
             }
         }
@@ -122,7 +123,7 @@ fun MatchDetailContent(match: MatchDetail) {
         }
 
         item {
-            Text("ESCALAÇÕES", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text(stringResource(R.string.rosters_title), fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
@@ -147,7 +148,7 @@ fun MatchDetailContent(match: MatchDetail) {
 
         if (match.games.isNotEmpty()) {
             item {
-                Text("MAPAS", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(stringResource(R.string.maps_title), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(16.dp))
             }
             items(match.games) { game ->
@@ -166,9 +167,9 @@ fun MatchDetailContent(match: MatchDetail) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val mapDisplayName = if (!game.mapName.isNullOrBlank()) {
-                            "Mapa ${game.position} - ${game.mapName}"
+                            stringResource(R.string.map_name_with_number, game.position.toString(), game.mapName)
                         } else {
-                            "Mapa ${game.position}"
+                            stringResource(R.string.map_number_only, game.position.toString())
                         }
 
                         Text(
@@ -176,13 +177,15 @@ fun MatchDetailContent(match: MatchDetail) {
                             fontWeight = FontWeight.Medium
                         )
 
+                        val statusText = when (game.status.lowercase()) {
+                            "running" -> stringResource(R.string.status_live).uppercase()
+                            "finished" -> stringResource(R.string.status_finished).uppercase()
+                            "not_started" -> stringResource(R.string.status_upcoming).uppercase()
+                            else -> game.status.uppercase()
+                        }
+
                         Text(
-                            text = when (game.status.lowercase()) {
-                                "running" -> "AO VIVO"
-                                "finished" -> "FINALIZADO"
-                                "not_started" -> "EM BREVE"
-                                else -> game.status.uppercase()
-                            },
+                            text = statusText,
                             fontWeight = FontWeight.Bold,
                             color = if (game.status.lowercase() == "running") LiveRed else MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -196,12 +199,14 @@ fun MatchDetailContent(match: MatchDetail) {
 @Composable
 fun StreamChipsSection(streams: List<Stream>) {
     val uriHandler = LocalUriHandler.current
+    val officialChannelText = stringResource(R.string.official_channel)
+    val streamFallbackText = stringResource(R.string.stream_fallback)
 
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "ASSISTIR AO VIVO",
+            text = stringResource(R.string.watch_live_title),
             fontSize = 12.sp,
             fontWeight = FontWeight.Black,
             color = Color.Gray,
@@ -231,10 +236,10 @@ fun StreamChipsSection(streams: List<Stream>) {
                 val textColor = if (platformColor == Color(0xFF53FC18)) Color.Black else Color.White
 
                 val channelName = if (platformName == "YouTube" && url.contains("watch")) {
-                    "Canal Oficial"
+                    officialChannelText
                 } else {
                     url.trimEnd('/').substringAfterLast("/").replaceFirstChar { it.uppercase() }
-                }.ifBlank { "Stream" }
+                }.ifBlank { streamFallbackText }
 
                 Row(
                     modifier = Modifier
@@ -280,9 +285,10 @@ fun TeamLogoAndName(team: TeamDetail?, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
+        val teamName = team?.name ?: ""
         AsyncImage(
             model = team?.darkModeImageUrl ?: team?.imageUrl ?: "https://via.placeholder.com/150",
-            contentDescription = "Logo ${team?.name}",
+            contentDescription = stringResource(R.string.cd_team_logo, teamName),
             modifier = Modifier
                 .size(64.dp)
                 .clip(CircleShape)
@@ -304,7 +310,7 @@ fun TeamLogoAndName(team: TeamDetail?, modifier: Modifier = Modifier) {
                 Spacer(modifier = Modifier.width(4.dp))
             }
             Text(
-                text = team?.acronym ?: team?.name ?: "TBD",
+                text = team?.acronym ?: team?.name ?: stringResource(R.string.tbd),
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
@@ -322,7 +328,7 @@ fun PlayerItem(player: Player) {
     ) {
         AsyncImage(
             model = player.imageUrl ?: "https://via.placeholder.com/150",
-            contentDescription = "Foto ${player.name}",
+            contentDescription = stringResource(R.string.cd_player_photo, player.name),
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)

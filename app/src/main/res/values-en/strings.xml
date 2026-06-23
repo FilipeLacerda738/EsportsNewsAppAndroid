@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">Esports Hub</string>
+    <string name="app_name_caps">ESPORTS HUB</string>
+    <string name="beta_tag">BETA</string>
+
+    <string name="search_team">Search team...</string>
+    <string name="filter_all">All</string>
+    <string name="status_live">Live</string>
+    <string name="status_upcoming">Upcoming</string>
+    <string name="status_finished">Finished</string>
+    <string name="to_be_defined">TBD</string>
+    <string name="undefined">Undefined</string>
+    <string name="tier_format">TIER %1$s</string>
+    <string name="best_of_format">BO%1$d</string>
+
+    <string name="update_available_title">Update Available</string>
+    <string name="update_available_desc">Version %1$s is now available!\n\nWhat\'s new:\n%2$s\n\nDo you want to download the APK now?</string>
+    <string name="update_download_yes">Yes, Download</string>
+    <string name="update_download_no">Not now</string>
+
+    <string name="error_oops">Oops! Something went wrong.</string>
+    <string name="error_unknown_fallback">Unknown error</string>
+    <string name="try_again">TRY AGAIN</string>
+    <string name="error_match_details">Could not load match details.</string>
+    <string name="error_connection">No connection to our servers. Please check your network and try again.</string>
+
+    <string name="match_detail_title">Match Details</string>
+    <string name="cd_back">Back</string>
+    <string name="rosters_title">ROSTERS</string>
+    <string name="maps_title">MAPS</string>
+    <string name="map_name_with_number">Map %1$s - %2$s</string>
+    <string name="map_number_only">Map %1$s</string>
+    <string name="watch_live_title">WATCH LIVE</string>
+    <string name="official_channel">Official Channel</string>
+    <string name="stream_fallback">Stream</string>
+    <string name="tbd">TBD</string>
+    <string name="cd_team_logo">%1$s Logo</string>
+    <string name="cd_player_photo">%1$s Photo</string>
+</resources>

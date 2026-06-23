@@ -1,7 +1,6 @@
 package com.example.esportsnews
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,16 +17,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.core.net.toUri
 import com.example.esportsnews.ui.theme.*
-import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
-import com.example.esportsnews.model.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,14 +43,14 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
 
     val updateData by viewModel.updateAvailable.collectAsState()
     val context = LocalContext.current
-    val localeBr = Locale("pt", "BR")
+    val currentLocale = LocalConfiguration.current.locales[0]
 
     updateData?.let { updateInfo ->
         AlertDialog(
             onDismissRequest = { viewModel.dismissUpdateDialog() },
-            title = { Text(text = "Atualização Disponível", fontWeight = FontWeight.Bold) },
+            title = { Text(text = stringResource(R.string.update_available_title), fontWeight = FontWeight.Bold) },
             text = {
-                Text(text = "A versão ${updateInfo.version} já está disponível!\n\nNovidades:\n${updateInfo.releaseNotes}\n\nDeseja baixar o APK agora?")
+                Text(text = stringResource(R.string.update_available_desc, updateInfo.version, updateInfo.releaseNotes))
             },
             confirmButton = {
                 TextButton(
@@ -61,14 +60,14 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                         viewModel.dismissUpdateDialog()
                     }
                 ) {
-                    Text("Sim, Baixar", fontWeight = FontWeight.Bold, color = AccentBlue)
+                    Text(stringResource(R.string.update_download_yes), fontWeight = FontWeight.Bold, color = AccentBlue)
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { viewModel.dismissUpdateDialog() }
                 ) {
-                    Text("Não agora", color = TextSecondary)
+                    Text(stringResource(R.string.update_download_no), color = TextSecondary)
                 }
             }
         )
@@ -80,10 +79,10 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 12.dp, top = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp, top = 8.dp)
                 ) {
                     Text(
-                        text = "ESPORTS HUB",
+                        text = stringResource(R.string.app_name_caps),
                         color = TextPrimary,
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = 2.sp
@@ -99,7 +98,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                             modifier = Modifier.padding(horizontal = 6.dp)
                         ) {
                             Text(
-                                text = "BETA",
+                                text = stringResource(R.string.beta_tag),
                                 color = Color.White,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Black,
@@ -107,13 +106,16 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.weight(1f))
+                    LanguageSelector()
                 }
 
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { viewModel.onSearchQueryChanged(it) },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Buscar time...", color = TextSecondary) },
+                    placeholder = { Text(stringResource(R.string.search_team), color = TextSecondary) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -130,12 +132,14 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    val filters = listOf("Todos", "CS2", "VALORANT")
-                    items(filters) { filter ->
+                    val games = listOf("Todos", "CS2", "VALORANT")
+                    items(games) { game ->
+                        val displayText = if (game == "Todos") stringResource(R.string.filter_all) else game
+
                         FilterChip(
-                            selected = selectedGame == filter,
-                            onClick = { viewModel.onGameFilterSelected(filter) },
-                            label = { Text(filter, fontWeight = FontWeight.Bold) },
+                            selected = selectedGame == game,
+                            onClick = { viewModel.onGameFilterSelected(game) },
+                            label = { Text(displayText, fontWeight = FontWeight.Bold) },
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = CardSurface,
                                 labelColor = TextSecondary,
@@ -156,9 +160,9 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                 ) {
                     items(viewModel.dateList) { date ->
                         val isDateSelected = selectedDate == date
-                        val dayOfWeek = date.dayOfWeek.getDisplayName(TextStyle.SHORT, localeBr)
+                        val dayOfWeek = date.dayOfWeek.getDisplayName(TextStyle.SHORT, currentLocale)
                             .replaceFirstChar { it.uppercase() }.replace(".", "")
-                        val dayOfMonth = String.format(localeBr, "%02d", date.dayOfMonth)
+                        val dayOfMonth = String.format(currentLocale, "%02d", date.dayOfMonth)
 
                         Surface(
                             shape = RoundedCornerShape(14.dp),
@@ -196,11 +200,19 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                     contentPadding = PaddingValues(bottom = 8.dp)
                 ) {
                     val statusFilters = listOf("Todos", "Ao Vivo", "Em breve", "Finalizados")
-                    items(statusFilters) { filter ->
-                        val isSelected = selectedStatus == filter
+                    items(statusFilters) { status ->
+                        val displayText = when(status) {
+                            "Todos" -> stringResource(R.string.filter_all)
+                            "Ao Vivo" -> stringResource(R.string.status_live)
+                            "Em breve" -> stringResource(R.string.status_upcoming)
+                            "Finalizados" -> stringResource(R.string.status_finished)
+                            else -> status
+                        }
+
+                        val isSelected = selectedStatus == status
 
                         Surface(
-                            onClick = { viewModel.onStatusFilterSelected(filter) },
+                            onClick = { viewModel.onStatusFilterSelected(status) },
                             shape = RoundedCornerShape(16.dp),
                             color = if (isSelected) AccentBlue else CardSurface,
                             shadowElevation = if (isSelected) 6.dp else 0.dp,
@@ -211,7 +223,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                                 modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
                             ) {
                                 Text(
-                                    text = filter,
+                                    text = displayText,
                                     fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
                                     color = if (isSelected) Color.White else TextSecondary
                                 )
@@ -236,10 +248,10 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(8) {
-                        SkeletonMatchCard() 
+                        SkeletonMatchCard()
                     }
                 }
-            } 
+            }
             else if (error != null && matches.isEmpty()) {
                 Column(
                     modifier = Modifier
@@ -256,14 +268,14 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Ops! Algo deu errado.",
+                        text = stringResource(R.string.error_oops),
                         color = TextPrimary,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = error ?: "Erro desconhecido",
+                        text = error ?: stringResource(R.string.error_unknown_fallback),
                         color = TextSecondary,
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center
@@ -275,10 +287,10 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth(0.7f)
                     ) {
-                        Text("TENTAR NOVAMENTE", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.try_again), color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
-            } 
+            }
             else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),

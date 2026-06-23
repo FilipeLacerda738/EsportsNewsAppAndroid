@@ -1,6 +1,7 @@
 package com.example.esportsnews
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.esportsnews.model.*
 import kotlinx.coroutines.Job
@@ -12,7 +13,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
-class MatchesViewModel : ViewModel() {
+class MatchesViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _matches = MutableStateFlow<List<Match>>(emptyList())
     val matches: StateFlow<List<Match>> = _matches
@@ -29,6 +30,7 @@ class MatchesViewModel : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    // Estes valores mantêm-se em PT pois servem de chaves de lógica interna para a UI e API
     private val _selectedGame = MutableStateFlow<String>("Todos")
     val selectedGame: StateFlow<String> = _selectedGame
 
@@ -94,7 +96,7 @@ class MatchesViewModel : ViewModel() {
                 val detail = RetrofitClient.api.getMatchDetails(matchId)
                 _matchDetail.value = detail
             } catch (e: Exception) {
-                _detailError.value = "Não foi possível carregar os detalhes desta partida."
+                _detailError.value = getApplication<Application>().getString(R.string.error_match_details)
             } finally {
                 _isDetailLoading.value = false
             }
@@ -154,7 +156,7 @@ class MatchesViewModel : ViewModel() {
                 applyFilters()
 
             } catch (e: Exception) {
-                _error.value = "Sem conexão com nossos servidores. Verifique sua rede e tente novamente."
+                _error.value = getApplication<Application>().getString(R.string.error_connection)
                 if (loadNextPage) currentPage--
             } finally {
                 _isLoading.value = false
