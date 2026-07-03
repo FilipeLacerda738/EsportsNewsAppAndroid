@@ -152,7 +152,7 @@ After that, simply open a Pull Request 🚀
 
 # 📄 License
 
-Distributed under the MIT License.
+Distributed under the GNU General Public License v3.0 LICENSE.
 
 See `LICENSE` for more information.
 
