@@ -12,6 +12,7 @@
     <string name="undefined">Undefined</string>
     <string name="tier_format">TIER %1$s</string>
     <string name="best_of_format">BO%1$d</string>
+    <string name="match_prizepool">Prize Pool:</string>
 
     <string name="update_available_title">Update Available</string>
     <string name="update_available_desc">Version %1$s is now available!\n\nWhat\'s new:\n%2$s\n\nDo you want to download the APK now?</string>

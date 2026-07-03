@@ -115,6 +115,44 @@ fun MatchDetailContent(match: MatchDetail) {
             Spacer(modifier = Modifier.height(24.dp))
         }
 
+        if (!match.prizepool.isNullOrBlank()) {
+            item {
+                Surface(
+                    color = AccentBlue.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp)
+                    ) {
+                        Text(
+                            text = "[ $ ] ",
+                            fontWeight = FontWeight.Black,
+                            color = AccentBlue,
+                            fontSize = 16.sp
+                        )
+                        Text(
+                            text = stringResource(id = R.string.match_prizepool),
+                            fontWeight = FontWeight.Bold,
+                            color = TextSecondary,
+                            fontSize = 14.sp
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = match.prizepool,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = TextPrimary,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
+        }
+
         if (!match.streams.isNullOrEmpty()) {
             item {
                 StreamChipsSection(streams = match.streams)
