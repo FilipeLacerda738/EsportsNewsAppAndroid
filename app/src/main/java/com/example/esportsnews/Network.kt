@@ -35,7 +35,8 @@ interface ApiService {
         @Query("game") game: String?,
         @Query("status") status: String?,
         @Query("limit") limit: Int = 15,
-        @Query("data_calendario") dataCalendario: String? = null
+        @Query("data_calendario") dataCalendario: String? = null,
+        @Query("tier") tier: String? = null
     ): PaginatedMatchResponse
 
     @Headers("Cache-Control: no-cache")

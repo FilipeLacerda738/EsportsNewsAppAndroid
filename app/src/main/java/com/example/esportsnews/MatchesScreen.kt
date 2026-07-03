@@ -40,6 +40,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
     val selectedStatus by viewModel.selectedStatus.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
+    val selectedTier by viewModel.selectedTier.collectAsState()
 
     val updateData by viewModel.updateAvailable.collectAsState()
     val context = LocalContext.current
@@ -145,6 +146,36 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                                 labelColor = TextSecondary,
                                 selectedContainerColor = AccentBlue.copy(alpha = 0.2f),
                                 selectedLabelColor = AccentBlue
+                            ),
+                            border = null,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val tiers = listOf("Todos", "S", "A", "B", "C")
+                    items(tiers) { tier ->
+                        val displayText = if (tier == "Todos") stringResource(R.string.filter_all) else stringResource(R.string.tier_format, tier)
+
+                        val activeColor = when (tier) {
+                            "S" -> Color(0xFFFFD700)
+                            "A" -> Color(0xFFC0C0C0)
+                            "B" -> Color(0xFFCD7F32)
+                            else -> AccentBlue
+                        }
+
+                        FilterChip(
+                            selected = selectedTier == tier,
+                            onClick = { viewModel.onTierFilterSelected(tier) },
+                            label = { Text(displayText, fontWeight = FontWeight.Bold) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = CardSurface,
+                                labelColor = TextSecondary,
+                                selectedContainerColor = activeColor.copy(alpha = 0.2f),
+                                selectedLabelColor = activeColor
                             ),
                             border = null,
                             shape = RoundedCornerShape(12.dp)

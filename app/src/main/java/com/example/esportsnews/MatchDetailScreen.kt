@@ -115,6 +115,44 @@ fun MatchDetailContent(match: MatchDetail) {
             Spacer(modifier = Modifier.height(24.dp))
         }
 
+        if (!match.prizepool.isNullOrBlank()) {
+            item {
+                Surface(
+                    color = AccentBlue.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp)
+                    ) {
+                        Text(
+                            text = "[ $ ] ",
+                            fontWeight = FontWeight.Black,
+                            color = AccentBlue,
+                            fontSize = 16.sp
+                        )
+                        Text(
+                            text = stringResource(id = R.string.match_prizepool),
+                            fontWeight = FontWeight.Bold,
+                            color = TextSecondary,
+                            fontSize = 14.sp
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = formatPrizepool(match.prizepool),
+                            fontWeight = FontWeight.ExtraBold,
+                            color = TextPrimary,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
+        }
+
         if (!match.streams.isNullOrEmpty()) {
             item {
                 StreamChipsSection(streams = match.streams)
@@ -347,5 +385,23 @@ fun PlayerItem(player: Player) {
                 )
             }
         }
+    }
+}
+
+fun formatPrizepool(rawPrizepool: String?): String {
+    if (rawPrizepool.isNullOrBlank()) return ""
+
+    val number = rawPrizepool.toLongOrNull() ?: return rawPrizepool
+
+    return when {
+        number >= 1_000_000 -> {
+            val millions = number / 1_000_000.0
+            if (millions % 1 == 0.0) "${millions.toInt()}M" else "${String.format(java.util.Locale.US, "%.1f", millions)}M"
+        }
+        number >= 1_000 -> {
+            val thousands = number / 1_000.0
+            if (thousands % 1 == 0.0) "${thousands.toInt()}K" else "${String.format(java.util.Locale.US, "%.1f", thousands)}K"
+        }
+        else -> number.toString()
     }
 }

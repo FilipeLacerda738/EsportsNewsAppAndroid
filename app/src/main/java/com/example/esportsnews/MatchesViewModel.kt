@@ -29,13 +29,14 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
-
-    // Estes valores mantêm-se em PT pois servem de chaves de lógica interna para a UI e API
     private val _selectedGame = MutableStateFlow<String>("Todos")
     val selectedGame: StateFlow<String> = _selectedGame
 
     private val _selectedStatus = MutableStateFlow<String>("Todos")
     val selectedStatus: StateFlow<String> = _selectedStatus
+
+    private val _selectedTier = MutableStateFlow<String>("Todos")
+    val selectedTier: StateFlow<String> = _selectedTier
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
@@ -137,11 +138,13 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
                     "CS2" -> "CSGO"
                     else -> _selectedGame.value
                 }
+                val apiTier = if (_selectedTier.value == "Todos") null else _selectedTier.value
 
                 val result = RetrofitClient.api.getMatches(
                     page = currentPage,
                     game = apiGame,
-                    status = apiStatus
+                    status = apiStatus,
+                    tier = apiTier
                 )
 
                 isLastPage = !result.hasMore
@@ -182,6 +185,11 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
         }
         fetchMatches(isRefresh = true)
         managePolling()
+    }
+
+    fun onTierFilterSelected(tier: String) {
+        _selectedTier.value = tier
+        fetchMatches(isRefresh = true)
     }
 
     fun onDateSelected(date: LocalDate?) {

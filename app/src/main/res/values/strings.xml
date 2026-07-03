@@ -12,6 +12,7 @@
     <string name="undefined">Indefinido</string>
     <string name="tier_format">TIER %1$s</string>
     <string name="best_of_format">BO%1$d</string>
+    <string name="match_prizepool">Premiação:</string>
 
     <string name="update_available_title">Atualização Disponível</string>
     <string name="update_available_desc">A versão %1$s já está disponível!\n\nNovidades:\n%2$s\n\nDeseja baixar o APK agora?</string>
