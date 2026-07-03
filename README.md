@@ -150,7 +150,7 @@ Depois disso, basta abrir um Pull Request 🚀
 
 # 📄 Licença
 
-Distribuído sob a licença MIT.
+Distribuído sob a licença GNU General Public License v3.0.
 
 Veja `LICENSE` para mais informações.
 
