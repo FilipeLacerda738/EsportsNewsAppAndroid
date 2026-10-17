@@ -1,15 +1,51 @@
+# Gradle/Kotlin e saídas de build em qualquer módulo
+.gradle/
+.kotlin/
+build/
+.externalNativeBuild/
+.cxx/
+
+# Configuração local e credenciais de assinatura
+local.properties
+keystore.properties
+key.properties
+signing.properties
+*.jks
+*.keystore
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Pacotes e artefatos de distribuição gerados
+*.apk
+*.aab
+*.ap_
+/app/release/
+/captures/
+
+# Estado pessoal da IDE; preservar configurações compartilháveis
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
+/.idea/caches/
+/.idea/libraries/
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/deploymentTargetDropDown.xml
+/.idea/shelf/
+/.idea/usage.statistics.xml
+/.idea/tasks.xml
+
+# Arquivos locais do sistema e do editor
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+Thumbs.db
+Desktop.ini
+*.log
+*.swp
+*.swo
+*~
+
+# AGENTS.md, .codex/config.toml, .codex/agents/*.toml e o Gradle Wrapper
+# são configurações compartilháveis e devem continuar versionáveis.
