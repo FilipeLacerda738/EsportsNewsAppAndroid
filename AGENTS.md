@@ -31,7 +31,7 @@ Android nativo, Kotlin/Gradle Kotlin DSL, módulo único `:app`, pacote/applicat
 | --- | --- |
 | `P/MainActivity.kt` | AppCompatActivity, ViewModel compartilhado, NavHost, lifecycle da rota/polling |
 | `P/MatchesViewModel.kt` | Estado lista/detalhe, filtros, páginas, jobs/gerações, polling e versão |
-| `P/Network.kt` | ApiService, singleton Retrofit/OkHttp, DTOs paginação/versão, comparação de versões |
+| `P/Network.kt` | ApiService, singleton Retrofit/OkHttp, DTOs paginação/versão |
 | `P/MatchesScreen.kt` / `P/MatchDetailScreen.kt` | Lista/filtros/calendário/refresh/update; detalhe/equipes/jogadores/mapas/streams |
 | `P/MatchComponents.kt` / `P/ShimmerEffect.kt` | Cards, status, datas, skeleton/animações |
 | `P/model/` / `P/MatchDetail.kt` | DTOs Gson; MatchDetail está fora da pasta model, mas declara pacote `.model` |
@@ -43,14 +43,14 @@ Android nativo, Kotlin/Gradle Kotlin DSL, módulo único `:app`, pacote/applicat
 
 ## Contratos e invariantes
 
-- **Rotas:** `matches_list` → `match_detail/{matchId}` (`Int`), mesmo ViewModel da Activity. Detalhe carrega por ID, limpa ao sair e renderiza somente resposta com ID correspondente. Servidor aceita ID interno ou PandaScore; navegação envia `match.id`.
+- **Rotas:** `matches_list` → `match_detail/{matchId}` (`Int`), mesmo ViewModel da Activity. Detalhe carrega por ID, limpa ao sair usando token de geração da requisição e renderiza somente resposta com ID correspondente. Servidor aceita ID interno ou PandaScore; navegação envia `match.id`.
 - **Lista:** `GET api/v1/matches/`, página inicial 1, limite padrão 15; envelope `total/page/size/has_more/items`. Acumular sem duplicar `id`, consolidar avanço só após sucesso, respeitar fim/retry e preservar dados em erro de refresh/próxima página.
 - **Filtros remotos:** jogo/status/tier. `CS2` na UI → `CSGO` na API; chaves internas `Todos/Ao Vivo/Em breve/Finalizados` mapeiam status para null/`running/not_started/finished`. Traduzir rótulos sem alterar identificadores.
 - **Filtros locais:** nome de equipe e data somente sobre páginas carregadas. API aceita `data_calendario`, mas ViewModel não o envia. Com filtro local, carregar mais por botão; sem filtro, pelo rodapé. Vazio local não significa ausência no servidor inteiro.
-- **Datas:** oito dias criados no ViewModel, começando ontem; converter offsets da API ao fuso do dispositivo. Ao Vivo limpa data; selecionar data nesse modo volta a Todos. Filtro local por dia e filtro UTC do servidor não são semanticamente equivalentes.
+- **Datas:** oito dias criados no ViewModel, começando ontem. Conversão consistente de offsets ao fuso do dispositivo ainda está pendente: o filtro mantém a data do offset recebido e o card espera formato com `Z`. Ao Vivo limpa data; selecionar data nesse modo volta a Todos e recarrega. Filtro local por dia e filtro UTC do servidor não são semanticamente equivalentes.
 - **Polling:** 30 s, habilitado pelo lifecycle `STARTED` da rota de lista, status Todos/Ao Vivo; somente página 1, sem requisição ativa/erro pendente. Não estender implicitamente a background/detalhe.
 - **Detalhe:** `GET api/v1/matches/{match_id}/details`. Conferir schemas/nulabilidade/campos ausentes (equipes/imagens podem ser nulas); defaults Kotlin não garantem contrato Gson.
-- **Versão:** `GET api/v1/system/app-version` → `version/download_url/release_notes`; compara três números estáveis, prefixo `v` opcional. Abre link externo, sem instalação automática. Falhas esperadas dessa consulta opcional não bloqueiam partidas.
+- **Versão:** `GET api/v1/system/app-version` → `version/download_url/release_notes`; atualmente avisa por desigualdade textual, com comparação numérica pendente. Abre link externo, sem instalação automática. Falhas esperadas dessa consulta opcional não bloqueiam partidas.
 - **Acesso:** sem login/conta/sessão de usuário. Interceptor envia `X-API-Key` ← `BuildConfig.API_KEY` ← `API_KEY` em `local.properties`; servidor usa `API_ACCESS_KEY`, com chave administrativa distinta. Chave da aplicação não é identidade/permissão de usuário.
 
 ## Implementação, estado e UI
@@ -72,7 +72,7 @@ Android nativo, Kotlin/Gradle Kotlin DSL, módulo único `:app`, pacote/applicat
 - Chave em APK/BuildConfig é extraível: ofuscação não substitui autorização servidor. Nunca embutir chave administrativa/privada, token PandaScore ou credenciais de banco.
 - Streams/download via `openExternalWebLink`: URL absoluta HTTP(S), host, sem userinfo; trata ausência de navegador/bloqueio por política. Não contornar com intents arbitrários, esquemas executáveis, WebView ou instalação automática. URL da API é entrada não confiável; substring usada para rótulo de plataforma não valida domínio.
 - Imagens vêm da API, `flagcdn.com` e placeholders externos: avaliar privacidade/disponibilidade/consumo, sem encaminhar headers de autenticação do backend.
-- Manifest: `INTERNET`, launcher exportada, serviço de locales não exportado. Justificar novas permissões/componentes e minimizar exportação. Backup habilitado, XMLs sem exclusões específicas: revisar backup/extração/transferência **antes** de introduzir dados sensíveis persistidos.
+- Manifest: `INTERNET`, launcher exportada. Não há serviço explícito de armazenamento automático de locales no manifest atual. Justificar novas permissões/componentes e minimizar exportação. Backup habilitado, XMLs sem exclusões específicas: revisar backup/extração/transferência **antes** de introduzir dados sensíveis persistidos.
 - Gson usa reflexão: revisar proteção R8 dos DTOs afetados, inclusive os de Network.kt; não desligar minificação globalmente. Debug aprovado não valida serialização release.
 - API própria: FastAPI/Pydantic, SQLAlchemy async/asyncpg, PostgreSQL/Alembic, jobs PandaScore e releases GitHub; Android não acessa banco/PandaScore diretamente. Suporte de conexão Supabase e scripts de permissões no backend **não comprovam** políticas aplicadas/produção. Riscos servidor/banco devem ser avaliados por contratos/código disponíveis, respeitando leitura exclusiva.
 
@@ -123,7 +123,7 @@ Selecionar cenários pertinentes, sem repetir verificações já suficientes:
 
 - Antes de Gradle, conferir JDK, SDK, distribuição e dependências instalados, sem revelar configuração sensível. Wrapper/Foojay podem baixar componentes; `--offline` **não garante** que distribuição/toolchain já estejam disponíveis. Se faltar componente, relatar impedimento; não provisionar.
 - Com ambiente completo, usar wrapper/PowerShell na raiz Android e apenas tarefas relevantes: `./gradlew.bat --offline :app:testDebugUnitTest`, `:app:lintDebug` ou `:app:assembleDebug`. Não executar todas por rotina.
-- Testes JVM existentes: `AppVersionTest` (versão estável), `ExternalLinksTest` (URLs aceitas/rejeitadas), `MatchContractTest` (equipes nulas, datas/offsets/frações/fuso); `ExampleUnitTest` é exemplo, sem cobertura funcional. Adicionar regressões proporcionais a mudanças de comportamento, sem espelhar apenas a implementação.
+- Testes JVM existentes: `ExternalLinksTest` (URLs aceitas/rejeitadas), `MatchContractTest` (equipes ausentes/nulas e dados válidos); `ExampleUnitTest` é exemplo, sem cobertura funcional. Concorrência, lifecycle/polling, datas e versões ainda não têm cobertura JVM. Adicionar regressões proporcionais a mudanças de comportamento, sem espelhar apenas a implementação.
 - Usar dados sintéticos sem segredos e isolamento de rede. Quando execução não for viável, revisar código/contratos/recursos estaticamente e indicar lacunas. Inspeção estática/JVM não comprovam aparência em tela, compatibilidade Android ou release.
 - Alteração documental requer revisão de conteúdo/diff, sem build/testes do app desnecessários.
 - Concluir só com escopo atendido, contratos e regressões pertinentes revisados, status/diff (inclusive novos arquivos) conferidos no repositório correto e sem mudanças incidentais. Relatar concisamente o que mudou/por quê, verificações realmente executadas/resultados, limitações e riscos materiais pendentes; respeitar as restrições de veracidade e Git.

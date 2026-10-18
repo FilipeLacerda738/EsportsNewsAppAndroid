@@ -37,4 +37,9 @@
     <string name="tbd">TBD</string>
     <string name="cd_team_logo">Logo %1$s</string>
     <string name="cd_player_photo">Foto %1$s</string>
+    <string name="error_external_link">No se pudo abrir este enlace. Comprueba que haya un navegador disponible.</string>
+    <string name="load_more_matches">Cargar más partidos</string>
+    <string name="local_filter_partial">El filtro solo incluye los partidos cargados. Carga más para continuar la búsqueda.</string>
+    <string name="local_filter_empty_hint">Filtro aplicado a los partidos cargados. Si no hay resultados, prueba otro equipo o fecha.</string>
+    <string name="matches_empty">No se encontraron partidos para los filtros seleccionados.</string>
 </resources>

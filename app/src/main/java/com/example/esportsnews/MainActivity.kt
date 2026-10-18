@@ -17,13 +17,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package com.example.esportsnews
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -48,7 +50,19 @@ class MainActivity : AppCompatActivity() {
 
                     NavHost(navController = navController, startDestination = "matches_list") {
 
-                        composable("matches_list") {
+                        composable("matches_list") { backStackEntry ->
+                            DisposableEffect(backStackEntry) {
+                                val lifecycle = backStackEntry.lifecycle
+                                val observer = LifecycleEventObserver { _, _ ->
+                                    viewModel.setListActive(lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
+                                }
+                                lifecycle.addObserver(observer)
+                                viewModel.setListActive(lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
+                                onDispose {
+                                    lifecycle.removeObserver(observer)
+                                    viewModel.setListActive(false)
+                                }
+                            }
                             MatchesScreen(
                                 viewModel = viewModel,
                                 onMatchClick = { matchId ->

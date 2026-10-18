@@ -38,4 +38,9 @@
     <string name="cd_team_logo">Logo %1$s</string>
     <string name="cd_player_photo">Foto %1$s</string>
 
+    <string name="error_external_link">Não foi possível abrir este link. Verifique se há um navegador disponível.</string>
+    <string name="load_more_matches">Carregar mais partidas</string>
+    <string name="local_filter_partial">O filtro considera apenas as partidas carregadas. Carregue mais para continuar a busca.</string>
+    <string name="local_filter_empty_hint">Filtro aplicado às partidas carregadas. Se não houver resultados, tente outra equipe ou data.</string>
+    <string name="matches_empty">Nenhuma partida encontrada para os filtros selecionados.</string>
 </resources>

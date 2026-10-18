@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,8 +38,9 @@ fun MatchDetailScreen(
     val isLoading by viewModel.isDetailLoading.collectAsState()
     val error by viewModel.detailError.collectAsState()
 
-    LaunchedEffect(matchId) {
-        viewModel.fetchMatchDetails(matchId)
+    DisposableEffect(matchId) {
+        val generation = viewModel.fetchMatchDetails(matchId)
+        onDispose { viewModel.clearMatchDetails(generation) }
     }
 
     Scaffold(
@@ -48,7 +49,6 @@ fun MatchDetailScreen(
                 title = { Text(stringResource(R.string.match_detail_title), fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = {
-                        viewModel.clearMatchDetails()
                         onNavigateBack()
                     }) {
                         Icon(
@@ -74,7 +74,7 @@ fun MatchDetailScreen(
             when {
                 isLoading -> CircularProgressIndicator()
                 error != null -> Text(text = error ?: stringResource(R.string.error_unknown_fallback), color = MaterialTheme.colorScheme.error)
-                detail != null -> MatchDetailContent(match = detail!!)
+                detail?.id == matchId -> MatchDetailContent(match = detail!!)
             }
         }
     }
@@ -198,7 +198,7 @@ fun MatchDetailContent(match: MatchDetail) {
 
 @Composable
 fun StreamChipsSection(streams: List<Stream>) {
-    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
     val officialChannelText = stringResource(R.string.official_channel)
     val streamFallbackText = stringResource(R.string.stream_fallback)
 
@@ -246,7 +246,7 @@ fun StreamChipsSection(streams: List<Stream>) {
                         .clip(RoundedCornerShape(8.dp))
                         .background(platformColor.copy(alpha = 0.15f))
                         .clickable {
-                            try { uriHandler.openUri(url) } catch (e: Exception) { e.printStackTrace() }
+                            openExternalWebLink(context, url)
                         }
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically

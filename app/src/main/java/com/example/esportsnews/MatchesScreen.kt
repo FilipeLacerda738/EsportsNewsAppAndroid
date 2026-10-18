@@ -1,6 +1,5 @@
 package com.example.esportsnews
 
-import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,10 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.core.net.toUri
 import com.example.esportsnews.ui.theme.*
 import java.time.format.TextStyle
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,12 +32,15 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val error by viewModel.error.collectAsState()
+    val hasMore by viewModel.hasMore.collectAsState()
+    val isLoadingNextPage by viewModel.isLoadingNextPage.collectAsState()
 
     val selectedGame by viewModel.selectedGame.collectAsState()
     val selectedStatus by viewModel.selectedStatus.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     val selectedTier by viewModel.selectedTier.collectAsState()
+    val hasLocalFilter = searchQuery.isNotBlank() || selectedDate != null
 
     val updateData by viewModel.updateAvailable.collectAsState()
     val context = LocalContext.current
@@ -56,9 +56,9 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, updateInfo.downloadUrl.toUri())
-                        context.startActivity(intent)
-                        viewModel.dismissUpdateDialog()
+                        if (openExternalWebLink(context, updateInfo.downloadUrl)) {
+                            viewModel.dismissUpdateDialog()
+                        }
                     }
                 ) {
                     Text(stringResource(R.string.update_download_yes), fontWeight = FontWeight.Bold, color = AccentBlue)
@@ -272,7 +272,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (isLoading && !isRefreshing && matches.isEmpty()) {
+            if ((isLoading || isRefreshing) && matches.isEmpty()) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
@@ -293,7 +293,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                 ) {
                     Icon(
                         imageVector = Icons.Default.Warning,
-                        contentDescription = "Erro de conexão",
+                        contentDescription = null,
                         tint = TextSecondary,
                         modifier = Modifier.size(64.dp)
                     )
@@ -313,7 +313,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                     )
                     Spacer(modifier = Modifier.height(32.dp))
                     Button(
-                        onClick = { viewModel.fetchMatches(isRefresh = true) },
+                        onClick = { viewModel.retryMatches() },
                         colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth(0.7f)
@@ -328,18 +328,42 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    if (hasLocalFilter || matches.isEmpty()) {
+                        item {
+                            Text(
+                                text = stringResource(
+                                    if (hasLocalFilter && hasMore) R.string.local_filter_partial
+                                    else if (hasLocalFilter) R.string.local_filter_empty_hint
+                                    else R.string.matches_empty
+                                ),
+                                color = TextSecondary,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
                     items(items = matches, key = { match -> match.id }) { match ->
                         ModernMatchCard(match = match, onClick = { onMatchClick(match.id) })
                     }
                     item {
-                        val isLoadingNextPage by viewModel.isLoadingNextPage.collectAsState()
-                        if (matches.isNotEmpty()) {
-                            LaunchedEffect(matches.size) {
+                        if (!hasLocalFilter && hasMore && error == null &&
+                            !isLoading && !isRefreshing && !isLoadingNextPage && matches.isNotEmpty()) {
+                            LaunchedEffect(matches.size, hasMore) {
                                 viewModel.loadNextPage()
                             }
                         }
 
-                        if (isLoadingNextPage) {
+                        if (error != null) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(text = error.orEmpty(), color = TextSecondary)
+                                TextButton(onClick = { viewModel.retryMatches() }) {
+                                    Text(stringResource(R.string.try_again))
+                                }
+                            }
+                        } else if (isLoadingNextPage) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -351,6 +375,12 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                                     modifier = Modifier.size(32.dp),
                                     strokeWidth = 3.dp
                                 )
+                            }
+                        } else if (hasMore && !isLoading && !isRefreshing) {
+                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                TextButton(onClick = { viewModel.loadNextPage() }) {
+                                    Text(stringResource(R.string.load_more_matches))
+                                }
                             }
                         } else {
                             Spacer(modifier = Modifier.height(24.dp))

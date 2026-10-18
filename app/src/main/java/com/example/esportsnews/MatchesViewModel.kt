@@ -4,13 +4,18 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.esportsnews.model.*
+import com.google.gson.JsonParseException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 import java.time.LocalDate
+import java.time.format.DateTimeParseException
 import java.time.ZonedDateTime
 
 class MatchesViewModel(application: Application) : AndroidViewModel(application) {
@@ -48,9 +53,18 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
 
     private var allFetchedMatches = mutableListOf<Match>()
     private var currentPage = 1
-    private var isLastPage = false
+    private val _hasMore = MutableStateFlow(true)
+    val hasMore: StateFlow<Boolean> = _hasMore
 
     private var pollingJob: Job? = null
+    private var listJob: Job? = null
+    private var listGeneration = 0L
+    private var listRequestActive = false
+    private var listRequestIsPolling = false
+    private var listActive = false
+    private var retryNextPage = false
+    private var detailJob: Job? = null
+    private var detailGeneration = 0L
 
     private val _matchDetail = MutableStateFlow<MatchDetail?>(null)
     val matchDetail: StateFlow<MatchDetail?> = _matchDetail
@@ -66,7 +80,6 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         fetchMatches()
-        managePolling()
         checkForUpdates()
     }
 
@@ -81,7 +94,13 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
                         _updateAvailable.value = response.body()
                     }
                 }
-            } catch (e: Exception) {}
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: IOException) {
+                // The optional update check must not block matches.
+            } catch (_: HttpException) {
+            } catch (_: JsonParseException) {
+            }
         }
     }
 
@@ -89,83 +108,126 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
         _updateAvailable.value = null
     }
 
-    fun fetchMatchDetails(matchId: Int) {
-        viewModelScope.launch {
-            _isDetailLoading.value = true
-            _detailError.value = null
+    fun fetchMatchDetails(matchId: Int): Long {
+        val generation = ++detailGeneration
+        detailJob?.cancel()
+        _matchDetail.value = null
+        _isDetailLoading.value = true
+        _detailError.value = null
+        detailJob = viewModelScope.launch {
             try {
                 val detail = RetrofitClient.api.getMatchDetails(matchId)
+                if (generation != detailGeneration) return@launch
+                if (detail.id != matchId) throw JsonParseException("Unexpected match ID")
                 _matchDetail.value = detail
-            } catch (e: Exception) {
-                _detailError.value = getApplication<Application>().getString(R.string.error_match_details)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: IOException) {
+                reportDetailError(generation)
+            } catch (_: HttpException) {
+                reportDetailError(generation)
+            } catch (_: JsonParseException) {
+                reportDetailError(generation)
             } finally {
-                _isDetailLoading.value = false
+                if (generation == detailGeneration) _isDetailLoading.value = false
             }
+        }
+        return generation
+    }
+
+    private fun reportDetailError(generation: Long) {
+        if (generation == detailGeneration) {
+            _detailError.value = getApplication<Application>().getString(R.string.error_match_details)
         }
     }
 
-    fun clearMatchDetails() {
+    fun clearMatchDetails(expectedGeneration: Long? = null) {
+        if (expectedGeneration != null && expectedGeneration != detailGeneration) return
+        ++detailGeneration
+        detailJob?.cancel()
         _matchDetail.value = null
         _detailError.value = null
+        _isDetailLoading.value = false
     }
 
     fun fetchMatches(isRefresh: Boolean = false, loadNextPage: Boolean = false) {
-        viewModelScope.launch {
-            if (loadNextPage && (_isLoadingNextPage.value || isLastPage)) return@launch
+        requestMatches(isRefresh, loadNextPage)
+    }
 
-            if (isRefresh) {
-                _isRefreshing.value = true
-                currentPage = 1
-                isLastPage = false
-            } else if (loadNextPage) {
-                _isLoadingNextPage.value = true
-                currentPage++
-            } else {
-                _isLoading.value = true
-            }
-
-            _error.value = null
-
+    private fun requestMatches(isRefresh: Boolean, loadNextPage: Boolean, polling: Boolean = false) {
+        if (loadNextPage && (!_hasMore.value || listRequestActive)) return
+        if (listRequestActive && !isRefresh) return
+        val generation = ++listGeneration
+        listJob?.cancel()
+        val requestedPage = if (loadNextPage) currentPage + 1 else 1
+        val apiStatus = when (_selectedStatus.value) {
+            "Ao Vivo" -> "running"
+            "Finalizados" -> "finished"
+            "Em breve" -> "not_started"
+            else -> null
+        }
+        val apiGame = when (_selectedGame.value) {
+            "Todos" -> null
+            "CS2" -> "CSGO"
+            else -> _selectedGame.value
+        }
+        val apiTier = _selectedTier.value.takeUnless { it == "Todos" }
+        listRequestActive = true
+        listRequestIsPolling = polling
+        _isLoading.value = !isRefresh && !loadNextPage && !polling
+        _isRefreshing.value = isRefresh && !polling
+        _isLoadingNextPage.value = loadNextPage
+        _error.value = null
+        listJob = viewModelScope.launch {
             try {
-                val apiStatus = when (_selectedStatus.value) {
-                    "Ao Vivo" -> "running"
-                    "Finalizados" -> "finished"
-                    "Em breve" -> "not_started"
-                    else -> null
-                }
-                val apiGame = when(_selectedGame.value){
-                    "Todos" -> null
-                    "CS2" -> "CSGO"
-                    else -> _selectedGame.value
-                }
-                val apiTier = if (_selectedTier.value == "Todos") null else _selectedTier.value
-
                 val result = RetrofitClient.api.getMatches(
-                    page = currentPage,
+                    page = requestedPage,
                     game = apiGame,
                     status = apiStatus,
                     tier = apiTier
                 )
 
-                isLastPage = !result.hasMore
-
-                if (isRefresh || (!isRefresh && !loadNextPage)) {
-                    allFetchedMatches.clear()
-                    allFetchedMatches.addAll(result.items)
-                } else {
-                    allFetchedMatches.addAll(result.items)
+                if (generation != listGeneration) return@launch
+                if (result.page != requestedPage) throw JsonParseException("Unexpected match page")
+                val items: List<Match?>? = result.items
+                if (items == null || items.any { it == null }) {
+                    throw JsonParseException("Missing match items")
                 }
-
+                val combined = if (loadNextPage) allFetchedMatches + result.items else result.items
+                allFetchedMatches = combined.distinctBy { it.id }.toMutableList()
+                currentPage = requestedPage
+                _hasMore.value = result.hasMore
                 applyFilters()
-
-            } catch (e: Exception) {
-                _error.value = getApplication<Application>().getString(R.string.error_connection)
-                if (loadNextPage) currentPage--
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: IOException) {
+                reportListError(generation, loadNextPage)
+            } catch (_: HttpException) {
+                reportListError(generation, loadNextPage)
+            } catch (_: JsonParseException) {
+                reportListError(generation, loadNextPage)
             } finally {
-                _isLoading.value = false
-                _isRefreshing.value = false
-                _isLoadingNextPage.value = false
+                if (generation == listGeneration) {
+                    listRequestActive = false
+                    listRequestIsPolling = false
+                    _isLoading.value = false
+                    _isRefreshing.value = false
+                    _isLoadingNextPage.value = false
+                }
             }
+        }
+    }
+
+    private fun reportListError(generation: Long, loadNextPage: Boolean) {
+        if (generation == listGeneration) {
+            retryNextPage = loadNextPage
+            _error.value = getApplication<Application>().getString(R.string.error_connection)
+        }
+    }
+
+    fun retryMatches() {
+        if (_error.value != null && !listRequestActive) {
+            fetchMatches(isRefresh = !retryNextPage, loadNextPage = retryNextPage)
         }
     }
 
@@ -174,31 +236,46 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun onGameFilterSelected(game: String) {
+        if (_selectedGame.value == game) return
         _selectedGame.value = game
-        fetchMatches(isRefresh = true)
+        reloadFilters()
     }
 
     fun onStatusFilterSelected(status: String) {
+        if (_selectedStatus.value == status) return
         _selectedStatus.value = status
         if (status == "Ao Vivo") {
             _selectedDate.value = null
         }
-        fetchMatches(isRefresh = true)
+        reloadFilters()
         managePolling()
     }
 
     fun onTierFilterSelected(tier: String) {
+        if (_selectedTier.value == tier) return
         _selectedTier.value = tier
-        fetchMatches(isRefresh = true)
+        reloadFilters()
+    }
+
+    private fun reloadFilters() {
+        ++listGeneration
+        listJob?.cancel()
+        listRequestActive = false
+        allFetchedMatches.clear()
+        currentPage = 1
+        _hasMore.value = true
+        applyFilters()
+        fetchMatches()
     }
 
     fun onDateSelected(date: LocalDate?) {
-        if (_selectedStatus.value == "Ao Vivo") {
+        val changeStatus = _selectedStatus.value == "Ao Vivo" && date != null
+        if (changeStatus) {
             _selectedStatus.value = "Todos"
             managePolling()
         }
         _selectedDate.value = if (_selectedDate.value == date) null else date
-        applyFilters()
+        if (changeStatus) reloadFilters() else applyFilters()
     }
 
     fun onSearchQueryChanged(query: String) {
@@ -226,7 +303,7 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
                         val matchDateTime = ZonedDateTime.parse(match.begin_at)
                         val matchLocalDate = matchDateTime.toLocalTime().let { matchDateTime.toLocalDate() }
                         matchLocalDate.isEqual(targetDate)
-                    } catch (e: Exception) {
+                    } catch (_: DateTimeParseException) {
                         false
                     }
                 }
@@ -235,13 +312,27 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
         _matches.value = filteredList
     }
 
+    fun setListActive(active: Boolean) {
+        if (listActive == active) return
+        listActive = active
+        if (!active && listRequestActive && listRequestIsPolling) {
+            ++listGeneration
+            listJob?.cancel()
+            listRequestActive = false
+            listRequestIsPolling = false
+        }
+        managePolling()
+    }
+
     private fun managePolling() {
         pollingJob?.cancel()
-        if ((_selectedStatus.value == "Ao Vivo" || _selectedStatus.value == "Todos") && currentPage == 1) {
+        if (listActive && (_selectedStatus.value == "Ao Vivo" || _selectedStatus.value == "Todos")) {
             pollingJob = viewModelScope.launch {
                 while (isActive) {
                     delay(30000)
-                    fetchMatches(isRefresh = true)
+                    if (currentPage == 1 && !listRequestActive && _error.value == null) {
+                        requestMatches(isRefresh = false, loadNextPage = false, polling = true)
+                    }
                 }
             }
         }

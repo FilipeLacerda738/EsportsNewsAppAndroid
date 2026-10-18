@@ -15,7 +15,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -159,7 +159,7 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
 }
 
 @Composable
-fun TeamProfile(team: Team) {
+fun TeamProfile(team: Team?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
@@ -168,16 +168,18 @@ fun TeamProfile(team: Team) {
                 .padding(10.dp),
             contentAlignment = Alignment.Center
         ) {
-            AsyncImage(
-                model = team.dark_mode_image_url ?: team.image_url,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
-            )
+            if (team != null) {
+                AsyncImage(
+                    model = team.dark_mode_image_url ?: team.image_url,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
         }
         Spacer(modifier = Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (team.location != null) {
+            if (team?.location != null) {
                 AsyncImage(
                     model = "https://flagcdn.com/w40/${team.location.lowercase()}.png",
                     contentDescription = null,
@@ -190,7 +192,7 @@ fun TeamProfile(team: Team) {
                 Spacer(modifier = Modifier.width(6.dp))
             }
             Text(
-                text = team.name,
+                text = team?.name ?: stringResource(R.string.to_be_defined),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
@@ -217,7 +219,7 @@ fun StatusBadge(status: String, streamUrl: String?) {
         else -> status.uppercase()
     }
 
-    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -225,11 +227,7 @@ fun StatusBadge(status: String, streamUrl: String?) {
             .then(
                 if (isLive && !streamUrl.isNullOrBlank()) {
                     Modifier.clickable {
-                        try {
-                            uriHandler.openUri(streamUrl)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
+                        openExternalWebLink(context, streamUrl)
                     }
                 } else {
                     Modifier

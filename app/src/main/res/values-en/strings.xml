@@ -37,4 +37,9 @@
     <string name="tbd">TBD</string>
     <string name="cd_team_logo">%1$s Logo</string>
     <string name="cd_player_photo">%1$s Photo</string>
+    <string name="error_external_link">Could not open this link. Check that a browser is available.</string>
+    <string name="load_more_matches">Load more matches</string>
+    <string name="local_filter_partial">The filter only includes loaded matches. Load more to continue searching.</string>
+    <string name="local_filter_empty_hint">Filter applied to loaded matches. If there are no results, try another team or date.</string>
+    <string name="matches_empty">No matches found for the selected filters.</string>
 </resources>

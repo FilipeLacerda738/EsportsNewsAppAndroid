@@ -15,8 +15,8 @@ data class Match(
     val streams: List<Stream>? = null,
     val tier: String? = null,
     val prizepool: String? = null,
-    val team_a: Team,
-    val team_b: Team,
+    val team_a: Team?,
+    val team_b: Team?,
     val league: League?,
     val number_of_games: Int? = null
 )
