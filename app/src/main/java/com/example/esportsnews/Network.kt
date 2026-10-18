@@ -1,6 +1,7 @@
 package com.example.esportsnews
 
 import com.example.esportsnews.model.*
+import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -13,12 +14,14 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
+@Keep
 data class AppVersion(
-    @SerializedName("version") val version: String,
-    @SerializedName("download_url") val downloadUrl: String,
-    @SerializedName("release_notes") val releaseNotes: String
+    @SerializedName("version") val version: String?,
+    @SerializedName("download_url") val downloadUrl: String?,
+    @SerializedName("release_notes") val releaseNotes: String?
 )
 
+@Keep
 data class PaginatedMatchResponse(
     @SerializedName("total") val total: Int,
     @SerializedName("page") val page: Int,
@@ -51,11 +54,6 @@ interface ApiService {
 }
 
 object RetrofitClient {
-    private val BASE_URL = if (BuildConfig.DEBUG) {
-        "http://192.168.1.11:8000/"
-    } else {
-        "https://esports-pro-api.onrender.com/"
-    }
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(60, TimeUnit.SECONDS)
@@ -70,7 +68,7 @@ object RetrofitClient {
 
     val api: ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BuildConfig.API_BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

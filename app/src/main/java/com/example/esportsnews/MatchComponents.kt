@@ -15,36 +15,22 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.esportsnews.model.Match
 import com.example.esportsnews.model.Team
 import com.example.esportsnews.ui.theme.*
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
-
-fun formatMatchDate(dateString: String?, tbdString: String, undefinedString: String): String {
-    if (dateString == null) return tbdString
-    return try {
-        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-        parser.timeZone = TimeZone.getTimeZone("UTC")
-        val parsedDate = parser.parse(dateString)
-        val formatter = SimpleDateFormat("dd/MM • HH:mm", Locale.getDefault())
-        formatter.timeZone = TimeZone.getDefault()
-        parsedDate?.let { formatter.format(it) } ?: tbdString
-    } catch (_: Exception) {
-        undefinedString
-    }
-}
+import java.time.ZoneId
 
 @Composable
-fun ModernMatchCard(match: Match, onClick: () -> Unit) {
+fun ModernMatchCard(match: Match, onClick: () -> Unit, zone: ZoneId = ZoneId.systemDefault()) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -62,7 +48,7 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     val leagueLogo = match.league?.dark_mode_image_url ?: match.league?.image_url
                     if (leagueLogo != null) {
                         AsyncImage(
@@ -107,6 +93,9 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
                 StatusBadge(status = match.status, streamUrl = match.stream_url)
             }
 
+            match.league?.name?.takeIf { it.isNotBlank() }?.let {
+                Text(it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), color = TextSecondary)
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -120,26 +109,30 @@ fun ModernMatchCard(match: Match, onClick: () -> Unit) {
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 12.dp)
+                    modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
                 ) {
                     if (match.status.lowercase() == "not_started") {
                         Text(
                             text = formatMatchDate(
                                 dateString = match.begin_at,
                                 tbdString = stringResource(R.string.to_be_defined),
-                                undefinedString = stringResource(R.string.undefined)
+                                undefinedString = stringResource(R.string.undefined),
+                                locale = LocalConfiguration.current.locales[0],
+                                zone = zone
                             ),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.best_of_format, match.number_of_games ?: 3),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = TextSecondary
-                        )
+                        match.number_of_games?.takeIf { it > 0 }?.let {
+                            Text(
+                                text = stringResource(R.string.best_of_format, it),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextSecondary
+                            )
+                        }
                     } else {
                         Text(
                             text = "${match.team_a_score} - ${match.team_b_score}",
@@ -168,21 +161,21 @@ fun TeamProfile(team: Team?) {
                 .padding(10.dp),
             contentAlignment = Alignment.Center
         ) {
-            if (team != null) {
-                AsyncImage(
-                    model = team.dark_mode_image_url ?: team.image_url,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
-            }
+            val fallback = painterResource(R.drawable.ic_team_placeholder)
+            AsyncImage(
+                model = team?.dark_mode_image_url?.takeIf { it.isNotBlank() } ?: team?.image_url?.takeIf { it.isNotBlank() },
+                contentDescription = null,
+                placeholder = fallback, error = fallback, fallback = fallback,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
         }
         Spacer(modifier = Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (team?.location != null) {
+            countryFlagUrl(team?.location)?.let { flagUrl ->
                 AsyncImage(
-                    model = "https://flagcdn.com/w40/${team.location.lowercase()}.png",
-                    contentDescription = null,
+                    model = flagUrl,
+                    contentDescription = stringResource(R.string.country_code, team?.location.orEmpty()),
                     modifier = Modifier
                         .height(12.dp)
                         .width(16.dp)
@@ -195,9 +188,7 @@ fun TeamProfile(team: Team?) {
                 text = team?.name ?: stringResource(R.string.to_be_defined),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                color = TextPrimary
             )
         }
     }
@@ -216,7 +207,7 @@ fun StatusBadge(status: String, streamUrl: String?) {
         "running" -> stringResource(R.string.status_live).uppercase()
         "finished" -> stringResource(R.string.status_finished).uppercase()
         "not_started" -> stringResource(R.string.status_upcoming).uppercase()
-        else -> status.uppercase()
+        else -> stringResource(R.string.undefined)
     }
 
     val context = LocalContext.current
@@ -225,8 +216,10 @@ fun StatusBadge(status: String, streamUrl: String?) {
         modifier = Modifier
             .background(if (isLive) badgeColor.copy(alpha = 0.15f) else Color.Transparent, RoundedCornerShape(8.dp))
             .then(
-                if (isLive && !streamUrl.isNullOrBlank()) {
-                    Modifier.clickable {
+                if (isLive && isExternalWebUrl(streamUrl)) {
+                    Modifier.sizeIn(minHeight = 48.dp, minWidth = 48.dp).clickable(
+                        role = Role.Button, onClickLabel = stringResource(R.string.watch_live_title)
+                    ) {
                         openExternalWebLink(context, streamUrl)
                     }
                 } else {
@@ -253,6 +246,10 @@ fun StatusBadge(status: String, streamUrl: String?) {
 
 @Composable
 fun BlinkingDot() {
+    if (!LocalAnimationsEnabled.current) {
+        Box(Modifier.size(6.dp).background(LiveRed, CircleShape))
+        return
+    }
     val infiniteTransition = rememberInfiniteTransition(label = "BlinkingDot")
     val alpha by infiniteTransition.animateFloat(
         initialValue = 0.2f,

@@ -15,8 +15,12 @@
     <string name="match_prizepool">Premio:</string>
 
     <string name="update_available_title">Actualización Disponible</string>
-    <string name="update_available_desc">¡La versión %1$s ya está disponible!\n\nNovedades:\n%2$s\n\n¿Quieres descargar el APK ahora?</string>
-    <string name="update_download_yes">Sí, Descargar</string>
+    <string name="update_available_desc">¡La versión %1$s ya está disponible!\n\nNovedades:\n%2$s\n\nAbre la página de la versión para ver los archivos disponibles.</string>
+    <string name="update_open_release">Ver versión</string>
+    <string name="update_check">Buscar actualizaciones</string>
+    <string name="update_checking">Buscando actualizaciones…</string>
+    <string name="update_up_to_date">Ya tienes la versión más reciente.</string>
+    <string name="update_check_failed">No se pudo buscar la actualización. Inténtalo de nuevo.</string>
     <string name="update_download_no">Ahora no</string>
 
     <string name="error_oops">¡Ups! Algo salió mal.</string>
@@ -27,7 +31,23 @@
 
     <string name="match_detail_title">Detalles del Partido</string>
     <string name="cd_back">Atrás</string>
-    <string name="rosters_title">ALINEACIONES</string>
+    <string name="rosters_title">JUGADORES DE LOS EQUIPOS</string>
+    <string name="rosters_hint">Jugadores informados para cada equipo; no confirma los titulares de este partido.</string>
+    <string name="refresh_match">Actualizar partido</string>
+    <string name="no_players">Jugadores no informados.</string>
+    <string name="no_maps">Mapas no informados.</string>
+    <string name="no_streams">No hay transmisiones disponibles.</string>
+    <string name="main_stream">Principal</string>
+    <string name="map_winner">Ganador: %1$s</string>
+    <string name="country_code">País: %1$s</string>
+    <string name="change_language">Seleccionar idioma</string>
+    <string name="error_timeout">El servidor tardó demasiado en responder. Inténtalo de nuevo.</string>
+    <string name="error_access_denied">Se denegó el acceso al servicio. Inténtalo más tarde.</string>
+    <string name="error_not_found">Esta información ya no está disponible.</string>
+    <string name="error_rate_limit">Demasiadas solicitudes. Espera un poco antes de intentarlo de nuevo.</string>
+    <string name="error_server_unavailable">El servicio no está disponible temporalmente. Inténtalo más tarde.</string>
+    <string name="error_request_failed">No se pudo completar la solicitud. Inténtalo de nuevo.</string>
+    <string name="error_invalid_response">No se pudieron leer los datos recibidos. Inténtalo de nuevo.</string>
     <string name="maps_title">MAPAS</string>
     <string name="map_name_with_number">Mapa %1$s - %2$s</string>
     <string name="map_number_only">Mapa %1$s</string>

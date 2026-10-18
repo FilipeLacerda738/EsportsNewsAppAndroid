@@ -83,6 +83,7 @@ class MainActivity : AppCompatActivity() {
                             MatchDetailScreen(
                                 matchId = matchId,
                                 viewModel = viewModel,
+                                lifecycle = backStackEntry.lifecycle,
                                 onNavigateBack = {
                                     navController.popBackStack()
                                 }

@@ -1,4 +1,5 @@
 import java.util.Properties
+import java.net.URI
 
 plugins {
     alias(libs.plugins.android.application)
@@ -75,6 +76,7 @@ android {
 
     buildTypes {
         release {
+            buildConfigField("String", "API_BASE_URL", "\"https://esports-pro-api.onrender.com/\"")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -84,6 +86,20 @@ android {
         }
 
         debug{
+            val debugApiBaseUrl = localProperties.getProperty("DEBUG_API_BASE_URL")
+                ?: "http://127.0.0.1:8000/"
+            val debugApiUri = try {
+                URI(debugApiBaseUrl)
+            } catch (_: java.net.URISyntaxException) {
+                throw GradleException("DEBUG_API_BASE_URL inválida em local.properties.")
+            }
+            require(
+                debugApiUri.scheme in listOf("http", "https") &&
+                    !debugApiUri.host.isNullOrBlank() && debugApiUri.rawUserInfo == null &&
+                    debugApiUri.rawQuery == null && debugApiUri.rawFragment == null &&
+                    debugApiUri.port in -1..65535 && debugApiBaseUrl.endsWith("/")
+            ) { "DEBUG_API_BASE_URL deve ser uma URL HTTP(S) absoluta, sem credenciais, query ou fragmento e terminar em /." }
+            buildConfigField("String", "API_BASE_URL", "\"$debugApiBaseUrl\"")
             isMinifyEnabled = false
             isShrinkResources = false
         }

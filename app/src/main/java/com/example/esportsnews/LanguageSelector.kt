@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.core.os.LocaleListCompat
 import com.example.esportsnews.ui.theme.TextPrimary
 
@@ -25,7 +26,7 @@ fun LanguageSelector() {
         IconButton(onClick = { menuAberto = true }) {
             Icon(
                 imageVector = Icons.Default.Language,
-                contentDescription = "Mudar Idioma",
+                contentDescription = stringResource(R.string.change_language),
                 tint = TextPrimary
             )
         }
