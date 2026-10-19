@@ -39,6 +39,7 @@ Android nativo, Kotlin/Gradle Kotlin DSL, módulo único `:app`, pacote/applicat
 | `P/model/` / `P/MatchDetail.kt` | DTOs Gson; MatchDetail está fora da pasta model, mas declara pacote `.model` |
 | `P/ExternalLinks.kt` | Validação de URL e Intent de navegador |
 | `P/LanguageSelector.kt` / `P/ui/theme/` | Idioma AppCompat; cores, tipografia e tema |
+| `P/ui/theme/DesignTokens.kt` | Escala de espaçamentos/dimensões e shapes Material 3 compartilhados pela lista e pelo detalhe |
 | `app/src/main/res/` | Strings pt padrão/en/es, locales e regras de backup |
 | `app/src/{main,debug}/AndroidManifest.xml` | Permissões, componentes e cleartext por variante |
 | `app/src/{test,androidTest}/` | Testes JVM e instrumentados, respectivamente |
@@ -65,6 +66,7 @@ Android nativo, Kotlin/Gradle Kotlin DSL, módulo único `:app`, pacote/applicat
 - Distinguir falhas de rede/HTTP/parsing de erros de programação. Não usar capturas indiscriminadas, código defensivo excessivo ou fallbacks que inventem sucesso/lista vazia/dados de domínio. Placeholder não é dado confirmado; tolerância da consulta de versão não se aplica às partidas.
 - Preservar APIs desde 26; revisar guards, lifecycle, recriação da Activity, idioma e restauração de navegação. Não mudar min/targetSdk incidentalmente; avaliar mudanças de comportamento em Android posterior.
 - **Tema:** esquema escuro por padrão alinhado a `DarkBackground/CardSurface/CardHeader/AccentBlue/LiveRed`, inclusive MaterialTheme do detalhe; cor dinâmica desativada por padrão. Cabeçalho/filtros rolam com a lista para caber em telas pequenas/fontes grandes. Shimmer e pisca respeitam `ValueAnimator.areAnimatorsEnabled`, observado uma vez na raiz e propagado por CompositionLocal; indicador ao vivo também tem texto.
+- **Layout mobile:** busca em largura total, filtros de jogo/status horizontais e tier em menu; calendário com dimensões mínimas que permitem crescimento do texto. Cards usam equipes com larguras equivalentes e placar central, com disposição vertical em largura reduzida/fonte ampliada. Detalhe agrupa campeonato/metadados, transmissões em linhas de largura total e jogadores por equipe, adaptando as colunas à largura/fonte. Usar tokens do tema para manter a hierarquia visual.
 - Textos em `res/values/`, `values-en/`, `values-es/`, mantendo formatos/placeholders e locales/seleção AppCompat. Mensagens úteis e localizadas, sem exceções brutas, URLs internas, IPs ou headers; sanitizar diagnóstico.
 - Considerar tela pequena, orientação, fonte ampliada, nomes longos, recortes, barras e safe insets/edge-to-edge (target 35). Não cortar conteúdo com alturas rígidas nem depender só de cor/animação. Semântica, foco, TalkBack, alvos de toque e descrições localizadas; descrição nula só para decoração/conteúdo já descrito. Considerar movimento reduzido em shimmer/pisca.
 - Distinguir loading inicial/refresh/próxima página, erro com/sem dados e vazio filtrado; manter retry/navegação. Dados ausentes de equipe, transmissão, imagem ou mapa não devem quebrar layout/ações.

@@ -1,11 +1,11 @@
 package com.example.esportsnews
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -13,233 +13,169 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.esportsnews.model.Match
 import com.example.esportsnews.model.Team
 import com.example.esportsnews.ui.theme.*
 import java.time.ZoneId
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ModernMatchCard(match: Match, onClick: () -> Unit, zone: ZoneId = ZoneId.systemDefault()) {
+fun ModernMatchCard(
+    match: Match,
+    onClick: () -> Unit,
+    zone: ZoneId = ZoneId.systemDefault(),
+    modifier: Modifier = Modifier
+) {
+    val configuration = LocalConfiguration.current
+    val stackedScore = configuration.fontScale >= 1.5f || configuration.screenWidthDp < 340
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(CardHeader)
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Column(Modifier.fillMaxWidth().padding(HubSpacing.Medium), verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
+            FlowRow(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small),
+                verticalArrangement = Arrangement.spacedBy(HubSpacing.ExtraSmall)
             ) {
-                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                    val leagueLogo = match.league?.dark_mode_image_url ?: match.league?.image_url
-                    if (leagueLogo != null) {
-                        AsyncImage(
-                            model = leagueLogo,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
-                    val displayGame = if (match.game.equals("CSGO", ignoreCase = true)) "CS2" else match.game.uppercase()
-                    Text(
-                        text = displayGame,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = TextSecondary,
-                        letterSpacing = 1.sp
-                    )
-
-                    if (match.tier != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        val tierColor = when (match.tier.lowercase()) {
-                            "s" -> Color(0xFFFFD700)
-                            "a" -> Color(0xFFC0C0C0)
-                            "b" -> Color(0xFFCD7F32)
-                            else -> TextSecondary
-                        }
-                        Box(
-                            modifier = Modifier
-                                .background(tierColor.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.tier_format, match.tier.uppercase()),
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Black,
-                                color = tierColor
-                            )
-                        }
-                    }
-                }
-                StatusBadge(status = match.status, streamUrl = match.stream_url)
-            }
-
-            match.league?.name?.takeIf { it.isNotBlank() }?.let {
-                Text(it, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), color = TextSecondary)
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    TeamProfile(team = match.team_a)
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
-                ) {
-                    if (match.status.lowercase() == "not_started") {
-                        Text(
-                            text = formatMatchDate(
-                                dateString = match.begin_at,
-                                tbdString = stringResource(R.string.to_be_defined),
-                                undefinedString = stringResource(R.string.undefined),
-                                locale = LocalConfiguration.current.locales[0],
-                                zone = zone
-                            ),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        match.number_of_games?.takeIf { it > 0 }?.let {
-                            Text(
-                                text = stringResource(R.string.best_of_format, it),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = TextSecondary
-                            )
-                        }
-                    } else {
-                        Text(
-                            text = "${match.team_a_score} - ${match.team_b_score}",
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Black,
-                            color = TextPrimary
-                        )
-                    }
-                }
-
-                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    TeamProfile(team = match.team_b)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun TeamProfile(team: Team?) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .background(DarkBackground, CircleShape)
-                .padding(10.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            val fallback = painterResource(R.drawable.ic_team_placeholder)
-            AsyncImage(
-                model = team?.dark_mode_image_url?.takeIf { it.isNotBlank() } ?: team?.image_url?.takeIf { it.isNotBlank() },
-                contentDescription = null,
-                placeholder = fallback, error = fallback, fallback = fallback,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
-            )
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            countryFlagUrl(team?.location)?.let { flagUrl ->
-                AsyncImage(
-                    model = flagUrl,
-                    contentDescription = stringResource(R.string.country_code, team?.location.orEmpty()),
-                    modifier = Modifier
-                        .height(12.dp)
-                        .width(16.dp)
-                        .clip(RoundedCornerShape(2.dp)),
-                    contentScale = ContentScale.Crop
+                Text(
+                    if (match.game.equals("CSGO", ignoreCase = true)) "CS2" else match.game.uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
+                match.tier?.takeIf { it.isNotBlank() }?.let {
+                    Text(stringResource(R.string.tier_format, it.uppercase()), style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.CenterVertically))
+                }
+                match.number_of_games?.takeIf { it > 0 }?.let {
+                    Text(stringResource(R.string.best_of_format, it), style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.CenterVertically))
+                }
+                StatusBadge(match.status, match.stream_url)
             }
+            match.league?.let { league ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
+                    val logo = league.dark_mode_image_url?.takeIf { it.isNotBlank() } ?: league.image_url
+                    if (!logo.isNullOrBlank()) {
+                        AsyncImage(model = logo, contentDescription = null, modifier = Modifier.size(16.dp), contentScale = ContentScale.Fit)
+                    }
+                    league.name?.takeIf { it.isNotBlank() }?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+            // Top alignment keeps logos and score aligned even when team names wrap.
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
+                TeamProfile(match.team_a, Modifier.weight(1f))
+                if (!stackedScore) MatchScore(match, Modifier.widthIn(min = 64.dp).heightIn(min = HubDimensions.TeamLogo))
+                TeamProfile(match.team_b, Modifier.weight(1f))
+            }
+            if (stackedScore) MatchScore(match, Modifier.fillMaxWidth())
             Text(
-                text = team?.name ?: stringResource(R.string.to_be_defined),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
+                formatMatchDate(match.begin_at, stringResource(R.string.to_be_defined), stringResource(R.string.undefined),
+                    LocalConfiguration.current.locales[0], zone),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
 @Composable
-fun StatusBadge(status: String, streamUrl: String?) {
-    val isLive = status.lowercase() == "running"
-    val isFinished = status.lowercase() == "finished"
+private fun MatchScore(match: Match, modifier: Modifier = Modifier) {
+    Box(modifier, contentAlignment = Alignment.Center) {
+        Text(
+            if (match.status.equals("not_started", ignoreCase = true)) stringResource(R.string.match_versus)
+            else "${match.team_a_score} : ${match.team_b_score}",
+            style = MaterialTheme.typography.headlineSmall.copy(fontFeatureSettings = "tnum"),
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@Composable
+fun TeamProfile(team: Team?, modifier: Modifier = Modifier) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
+        TeamLogo(team)
+        TeamName(team)
+    }
+}
+
+@Composable
+private fun TeamLogo(team: Team?, modifier: Modifier = Modifier) {
+    val fallback = painterResource(R.drawable.ic_team_placeholder)
+    AsyncImage(
+        model = team?.dark_mode_image_url?.takeIf { it.isNotBlank() } ?: team?.image_url?.takeIf { it.isNotBlank() },
+        contentDescription = null,
+        placeholder = fallback, error = fallback, fallback = fallback,
+        modifier = modifier.size(HubDimensions.TeamLogo).clip(MaterialTheme.shapes.small)
+            .background(MaterialTheme.colorScheme.background).padding(HubSpacing.ExtraSmall),
+        contentScale = ContentScale.Fit
+    )
+}
+
+@Composable
+private fun TeamName(team: Team?, modifier: Modifier = Modifier) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(HubSpacing.ExtraSmall)) {
+        Text(team?.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.to_be_defined),
+            style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
+        countryFlagUrl(team?.location)?.let {
+            AsyncImage(model = it, contentDescription = stringResource(R.string.country_code, team?.location.orEmpty()),
+                modifier = Modifier.size(width = 16.dp, height = 12.dp), contentScale = ContentScale.Fit)
+        }
+    }
+}
+
+@Composable
+fun StatusBadge(status: String, streamUrl: String?, modifier: Modifier = Modifier) {
+    val isLive = status.equals("running", ignoreCase = true)
     val badgeColor = when {
         isLive -> LiveRed
-        isFinished -> TextSecondary
-        else -> AccentBlue
+        status.equals("finished", ignoreCase = true) -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> MaterialTheme.colorScheme.primary
     }
     val displayText = when (status.lowercase()) {
-        "running" -> stringResource(R.string.status_live).uppercase()
-        "finished" -> stringResource(R.string.status_finished).uppercase()
-        "not_started" -> stringResource(R.string.status_upcoming).uppercase()
+        "running" -> stringResource(R.string.status_live)
+        "finished" -> stringResource(R.string.status_finished)
+        "not_started" -> stringResource(R.string.status_upcoming)
         else -> stringResource(R.string.undefined)
     }
-
     val context = LocalContext.current
-
+    val watchLabel = stringResource(R.string.watch_live_title)
     Box(
-        modifier = Modifier
-            .background(if (isLive) badgeColor.copy(alpha = 0.15f) else Color.Transparent, RoundedCornerShape(8.dp))
-            .then(
-                if (isLive && isExternalWebUrl(streamUrl)) {
-                    Modifier.sizeIn(minHeight = 48.dp, minWidth = 48.dp).clickable(
-                        role = Role.Button, onClickLabel = stringResource(R.string.watch_live_title)
-                    ) {
-                        openExternalWebLink(context, streamUrl)
-                    }
-                } else {
-                    Modifier
-                }
-            )
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+        modifier = modifier.then(
+            if (isLive && isExternalWebUrl(streamUrl)) {
+                Modifier.sizeIn(minHeight = 48.dp, minWidth = 48.dp).clip(MaterialTheme.shapes.small)
+                    .clickable(role = Role.Button, onClickLabel = watchLabel) { openExternalWebLink(context, streamUrl) }
+            } else Modifier
+        ),
+        contentAlignment = Alignment.Center
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (isLive) {
-                BlinkingDot()
-                Spacer(modifier = Modifier.width(6.dp))
-            }
-            Text(
-                text = displayText,
-                color = badgeColor,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 0.5.sp
-            )
+        Row(
+            Modifier.clip(MaterialTheme.shapes.extraSmall)
+                .background(if (isLive) LiveRed.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant)
+                .padding(horizontal = HubSpacing.Small, vertical = HubSpacing.ExtraSmall),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(HubSpacing.ExtraSmall)
+        ) {
+            if (isLive) BlinkingDot()
+            Text(displayText, color = badgeColor, style = MaterialTheme.typography.labelSmall)
         }
     }
 }
@@ -252,75 +188,31 @@ fun BlinkingDot() {
     }
     val infiniteTransition = rememberInfiniteTransition(label = "BlinkingDot")
     val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.2f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 800, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
+        initialValue = 0.2f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 800, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
         label = "AlphaAnimation"
     )
-    Box(
-        modifier = Modifier
-            .size(6.dp)
-            .alpha(alpha)
-            .background(color = LiveRed, shape = CircleShape)
-    )
+    Box(Modifier.size(6.dp).alpha(alpha).background(LiveRed, CircleShape))
 }
 
 @Composable
-fun SkeletonMatchCard() {
+fun SkeletonMatchCard(modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(CardHeader)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(20.dp).clip(CircleShape).shimmerEffect())
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(modifier = Modifier.height(14.dp).width(40.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-                }
-                Box(modifier = Modifier.height(16.dp).width(60.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(modifier = Modifier.size(56.dp).clip(CircleShape).shimmerEffect())
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Box(modifier = Modifier.height(14.dp).width(60.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-                    }
-                }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    Box(modifier = Modifier.height(24.dp).width(40.dp).clip(RoundedCornerShape(6.dp)).shimmerEffect())
-                }
-                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(modifier = Modifier.size(56.dp).clip(CircleShape).shimmerEffect())
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Box(modifier = Modifier.height(14.dp).width(60.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+        Column(Modifier.padding(HubSpacing.Medium), verticalArrangement = Arrangement.spacedBy(HubSpacing.Medium)) {
+            Box(Modifier.height(16.dp).fillMaxWidth(0.6f).clip(MaterialTheme.shapes.extraSmall).shimmerEffect())
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                repeat(3) {
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        Box(Modifier.size(HubDimensions.TeamLogo).clip(MaterialTheme.shapes.small).shimmerEffect())
                     }
                 }
             }
+            Box(Modifier.height(16.dp).fillMaxWidth().clip(MaterialTheme.shapes.extraSmall).shimmerEffect())
+            Box(Modifier.height(12.dp).fillMaxWidth(0.4f).clip(MaterialTheme.shapes.extraSmall).shimmerEffect())
         }
     }
 }

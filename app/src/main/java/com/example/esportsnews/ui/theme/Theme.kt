@@ -15,6 +15,8 @@ import com.example.esportsnews.rememberAnimationsEnabled
 private val DarkColorScheme = darkColorScheme(
     primary = AccentBlue,
     onPrimary = DarkBackground,
+    primaryContainer = AccentContainer,
+    onPrimaryContainer = AccentBlue,
     secondary = TextSecondary,
     onSecondary = DarkBackground,
     tertiary = AccentBlue,
@@ -24,7 +26,8 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = TextPrimary,
     surfaceVariant = CardHeader,
     onSurfaceVariant = TextSecondary,
-    outline = TextSecondary,
+    outline = SurfaceOutline,
+    outlineVariant = SurfaceOutline,
     error = LiveRed,
     onError = DarkBackground
 )
@@ -66,6 +69,7 @@ fun EsportsNewsTheme(
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography,
+            shapes = HubShapes,
             content = content
         )
     }

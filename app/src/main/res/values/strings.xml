@@ -4,6 +4,11 @@
     <string name="beta_tag">BETA</string>
 
     <string name="search_team">Buscar time...</string>
+    <string name="clear_search">Limpar busca</string>
+    <string name="filter_tiers">Tiers</string>
+    <string name="all_tiers">Todos os tiers</string>
+    <string name="matches_section">Partidas</string>
+    <string name="match_versus">vs</string>
     <string name="filter_all">Todos</string>
     <string name="status_live">Ao Vivo</string>
     <string name="status_upcoming">Em breve</string>
