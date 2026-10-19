@@ -2,34 +2,35 @@ package com.example.esportsnews
 
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.core.os.LocaleListCompat
-import com.example.esportsnews.ui.theme.TextPrimary
 
 @Composable
 fun LanguageSelector() {
     var menuAberto by remember { mutableStateOf(false) }
+    val locale = LocalConfiguration.current.locales[0]
 
     Box {
-        IconButton(onClick = { menuAberto = true }) {
-            Icon(
-                imageVector = Icons.Default.Language,
-                contentDescription = stringResource(R.string.change_language),
-                tint = TextPrimary
-            )
-        }
+        SettingsAction(
+            title = stringResource(R.string.settings_language),
+            subtitle = locale.getDisplayName(locale).replaceFirstChar { it.titlecase(locale) },
+            icon = Icons.Default.Language,
+            onClick = { menuAberto = true },
+            modifier = Modifier.fillMaxWidth()
+        )
         DropdownMenu(
             expanded = menuAberto,
             onDismissRequest = { menuAberto = false }

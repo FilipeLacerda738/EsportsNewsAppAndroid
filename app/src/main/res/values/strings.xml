@@ -8,16 +8,16 @@
     <string name="filter_tiers">Tiers</string>
     <string name="all_tiers">Todos os tiers</string>
     <string name="matches_section">Partidas</string>
-    <string name="match_versus">vs</string>
+    <string name="match_versus">VS</string>
     <string name="filter_all">Todos</string>
     <string name="status_live">Ao Vivo</string>
     <string name="status_upcoming">Em breve</string>
     <string name="status_finished">Finalizados</string>
     <string name="to_be_defined">A definir</string>
     <string name="undefined">Indefinido</string>
-    <string name="tier_format">TIER %1$s</string>
+    <string name="tier_format">Tier %1$s</string>
     <string name="best_of_format">BO%1$d</string>
-    <string name="match_prizepool">Premiação:</string>
+    <string name="match_prizepool">Premiação total</string>
 
     <string name="update_available_title">Atualização Disponível</string>
     <string name="update_available_desc">A versão %1$s já está disponível!\n\nNovidades:\n%2$s\n\nAbra a página da versão para ver os arquivos disponíveis.</string>
@@ -36,7 +36,7 @@
 
     <string name="match_detail_title">Detalhes da Partida</string>
     <string name="cd_back">Voltar</string>
-    <string name="rosters_title">JOGADORES DAS EQUIPES</string>
+    <string name="rosters_title">Jogadores das equipes</string>
     <string name="rosters_hint">Elenco informado para cada equipe; não confirma os titulares desta partida.</string>
     <string name="refresh_match">Atualizar partida</string>
     <string name="no_players">Elenco não informado.</string>
@@ -53,7 +53,7 @@
     <string name="error_server_unavailable">O serviço está temporariamente indisponível. Tente novamente mais tarde.</string>
     <string name="error_request_failed">Não foi possível concluir a solicitação. Tente novamente.</string>
     <string name="error_invalid_response">Não foi possível ler os dados recebidos. Tente novamente.</string>
-    <string name="maps_title">MAPAS</string>
+    <string name="maps_title">Mapas</string>
     <string name="map_name_with_number">Mapa %1$s - %2$s</string>
     <string name="map_number_only">Mapa %1$s</string>
     <string name="watch_live_title">ASSISTIR AO VIVO</string>
@@ -68,4 +68,13 @@
     <string name="local_filter_partial">O filtro considera apenas as partidas carregadas. Carregue mais para continuar a busca.</string>
     <string name="local_filter_empty_hint">Filtro aplicado às partidas carregadas. Se não houver resultados, tente outra equipe ou data.</string>
     <string name="matches_empty">Nenhuma partida encontrada para os filtros selecionados.</string>
+    <string name="open_menu">Abrir menu</string>
+    <string name="close_menu">Fechar menu</string>
+    <string name="settings_title">Configurações</string>
+    <string name="hub_tagline">Seu hub de jogos e esports</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_version">Versão %1$s (%2$d)</string>
+    <string name="streams_title">Transmissões ao vivo</string>
+    <string name="match_date_label">Data</string>
+    <string name="match_tier_label">Tier</string>
 </resources>

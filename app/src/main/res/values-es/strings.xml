@@ -8,16 +8,16 @@
     <string name="filter_tiers">Tiers</string>
     <string name="all_tiers">Todos los tiers</string>
     <string name="matches_section">Partidas</string>
-    <string name="match_versus">vs</string>
+    <string name="match_versus">VS</string>
     <string name="filter_all">Todos</string>
     <string name="status_live">En Vivo</string>
     <string name="status_upcoming">Próximamente</string>
     <string name="status_finished">Finalizados</string>
     <string name="to_be_defined">Por definir</string>
     <string name="undefined">Indefinido</string>
-    <string name="tier_format">TIER %1$s</string>
+    <string name="tier_format">Tier %1$s</string>
     <string name="best_of_format">BO%1$d</string>
-    <string name="match_prizepool">Premio:</string>
+    <string name="match_prizepool">Premios totales</string>
 
     <string name="update_available_title">Actualización Disponible</string>
     <string name="update_available_desc">¡La versión %1$s ya está disponible!\n\nNovedades:\n%2$s\n\nAbre la página de la versión para ver los archivos disponibles.</string>
@@ -36,7 +36,7 @@
 
     <string name="match_detail_title">Detalles del Partido</string>
     <string name="cd_back">Atrás</string>
-    <string name="rosters_title">JUGADORES DE LOS EQUIPOS</string>
+    <string name="rosters_title">Jugadores de los equipos</string>
     <string name="rosters_hint">Jugadores informados para cada equipo; no confirma los titulares de este partido.</string>
     <string name="refresh_match">Actualizar partido</string>
     <string name="no_players">Jugadores no informados.</string>
@@ -53,7 +53,7 @@
     <string name="error_server_unavailable">El servicio no está disponible temporalmente. Inténtalo más tarde.</string>
     <string name="error_request_failed">No se pudo completar la solicitud. Inténtalo de nuevo.</string>
     <string name="error_invalid_response">No se pudieron leer los datos recibidos. Inténtalo de nuevo.</string>
-    <string name="maps_title">MAPAS</string>
+    <string name="maps_title">Mapas</string>
     <string name="map_name_with_number">Mapa %1$s - %2$s</string>
     <string name="map_number_only">Mapa %1$s</string>
     <string name="watch_live_title">VER EN VIVO</string>
@@ -67,4 +67,13 @@
     <string name="local_filter_partial">El filtro solo incluye los partidos cargados. Carga más para continuar la búsqueda.</string>
     <string name="local_filter_empty_hint">Filtro aplicado a los partidos cargados. Si no hay resultados, prueba otro equipo o fecha.</string>
     <string name="matches_empty">No se encontraron partidos para los filtros seleccionados.</string>
+    <string name="open_menu">Abrir menú</string>
+    <string name="close_menu">Cerrar menú</string>
+    <string name="settings_title">Configuración</string>
+    <string name="hub_tagline">Tu hub de juegos y esports</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_version">Versión %1$s (%2$d)</string>
+    <string name="streams_title">Transmisiones en vivo</string>
+    <string name="match_date_label">Fecha</string>
+    <string name="match_tier_label">Tier</string>
 </resources>

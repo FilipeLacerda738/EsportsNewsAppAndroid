@@ -8,16 +8,16 @@
     <string name="filter_tiers">Tiers</string>
     <string name="all_tiers">All tiers</string>
     <string name="matches_section">Matches</string>
-    <string name="match_versus">vs</string>
+    <string name="match_versus">VS</string>
     <string name="filter_all">All</string>
     <string name="status_live">Live</string>
     <string name="status_upcoming">Upcoming</string>
     <string name="status_finished">Finished</string>
     <string name="to_be_defined">TBD</string>
     <string name="undefined">Undefined</string>
-    <string name="tier_format">TIER %1$s</string>
+    <string name="tier_format">Tier %1$s</string>
     <string name="best_of_format">BO%1$d</string>
-    <string name="match_prizepool">Prize Pool:</string>
+    <string name="match_prizepool">Total prize pool</string>
 
     <string name="update_available_title">Update Available</string>
     <string name="update_available_desc">Version %1$s is now available!\n\nWhat\'s new:\n%2$s\n\nOpen the release page to see the available files.</string>
@@ -36,7 +36,7 @@
 
     <string name="match_detail_title">Match Details</string>
     <string name="cd_back">Back</string>
-    <string name="rosters_title">TEAM PLAYERS</string>
+    <string name="rosters_title">Team players</string>
     <string name="rosters_hint">Players listed for each team; this does not confirm the starting lineup for this match.</string>
     <string name="refresh_match">Refresh match</string>
     <string name="no_players">Players not provided.</string>
@@ -53,7 +53,7 @@
     <string name="error_server_unavailable">The service is temporarily unavailable. Please try again later.</string>
     <string name="error_request_failed">Could not complete the request. Please try again.</string>
     <string name="error_invalid_response">Could not read the received data. Please try again.</string>
-    <string name="maps_title">MAPS</string>
+    <string name="maps_title">Maps</string>
     <string name="map_name_with_number">Map %1$s - %2$s</string>
     <string name="map_number_only">Map %1$s</string>
     <string name="watch_live_title">WATCH LIVE</string>
@@ -67,4 +67,13 @@
     <string name="local_filter_partial">The filter only includes loaded matches. Load more to continue searching.</string>
     <string name="local_filter_empty_hint">Filter applied to loaded matches. If there are no results, try another team or date.</string>
     <string name="matches_empty">No matches found for the selected filters.</string>
+    <string name="open_menu">Open menu</string>
+    <string name="close_menu">Close menu</string>
+    <string name="settings_title">Settings</string>
+    <string name="hub_tagline">Your hub for games and esports</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_version">Version %1$s (%2$d)</string>
+    <string name="streams_title">Live streams</string>
+    <string name="match_date_label">Date</string>
+    <string name="match_tier_label">Tier</string>
 </resources>

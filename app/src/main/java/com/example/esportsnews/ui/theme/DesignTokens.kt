@@ -13,15 +13,15 @@ object HubSpacing {
 }
 
 object HubDimensions {
-    val TeamLogo = 40.dp
+    val TeamLogo = 48.dp
     val DetailTeamLogo = 56.dp
     val PlayerPhoto = 40.dp
 }
 
 val HubShapes = Shapes(
     extraSmall = RoundedCornerShape(4.dp),
-    small = RoundedCornerShape(8.dp),
-    medium = RoundedCornerShape(12.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
     large = RoundedCornerShape(16.dp),
     extraLarge = RoundedCornerShape(24.dp)
 )

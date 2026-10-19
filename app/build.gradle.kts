@@ -12,33 +12,6 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-fun getAppVersionName(): String {
-    return try {
-        val gitFolder = rootProject.rootDir
-        val process = ProcessBuilder("git", "describe", "--tags", "--abbrev=0")
-            .directory(gitFolder)
-            .redirectErrorStream(true)
-            .start()
-
-        process.waitFor()
-        val result = process.inputStream.bufferedReader().readText().trim()
-
-        println("GIT TAG RESULT: '$result'")
-
-        if (result.contains("fatal") || result.contains("error") || result.isEmpty()) {
-            println("GIT TAG FAILED: Retornando 1.0.0 como fallback.")
-            "1.0.0"
-        } else {
-            val finalVersion = result.replace("v", "")
-            println("GIT TAG SUCESSO: Retornando $finalVersion")
-            finalVersion
-        }
-    } catch (e: Exception) {
-        println("GIT COMMAND CRASH: ${e.message}")
-        "1.0.0"
-    }
-}
-
 fun getAppVersionCode(): Int {
     return try {
         val gitFolder = rootProject.rootDir
@@ -66,7 +39,7 @@ android {
         targetSdk = 35
 
         versionCode = getAppVersionCode()
-        versionName = getAppVersionName()
+        versionName = "1.5.4"
 
         val apiKey = localProperties.getProperty("API_KEY") ?: ""
         buildConfigField("String", "API_KEY", "\"$apiKey\"")

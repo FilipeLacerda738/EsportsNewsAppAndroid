@@ -1,8 +1,6 @@
 package com.example.esportsnews
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -11,7 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SystemUpdateAlt
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -19,12 +17,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -38,7 +33,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
+fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit, onOpenMenu: () -> Unit) {
     val matches by viewModel.matches.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -53,29 +48,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
     val dateList by viewModel.dateList.collectAsState()
     val deviceZone by viewModel.deviceZone.collectAsState()
     val hasLocalFilter = searchQuery.isNotBlank() || selectedDate != null
-    val updateData by viewModel.updateAvailable.collectAsState()
-    val updateCheckState by viewModel.updateCheckState.collectAsState()
-    val context = LocalContext.current
     val currentLocale = LocalConfiguration.current.locales[0]
-
-    updateData?.let { updateInfo ->
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissUpdateDialog() },
-            title = { Text(stringResource(R.string.update_available_title)) },
-            text = {
-                Text(stringResource(R.string.update_available_desc, updateInfo.version.orEmpty(), updateInfo.releaseNotes.orEmpty()),
-                    modifier = Modifier.verticalScroll(rememberScrollState()))
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (openExternalWebLink(context, updateInfo.downloadUrl)) viewModel.dismissUpdateDialog()
-                }) { Text(stringResource(R.string.update_open_release)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { viewModel.dismissUpdateDialog() }) { Text(stringResource(R.string.update_download_no)) }
-            }
-        )
-    }
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { paddingValues ->
         PullToRefreshBox(
@@ -90,7 +63,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
             ) {
                 item(key = "filters", contentType = "filters") {
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
-                        MatchesHeader(updateCheckState, onCheckUpdates = { viewModel.checkForUpdates() })
+                        MatchesHeader(onOpenMenu)
                         OutlinedTextField(
                             value = searchQuery,
                             onValueChange = { viewModel.onSearchQueryChanged(it) },
@@ -102,7 +75,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                                     Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear_search))
                                 } }
                             } else null,
-                            shape = MaterialTheme.shapes.medium,
+                            shape = MaterialTheme.shapes.extraLarge,
                             textStyle = MaterialTheme.typography.bodyMedium,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -129,7 +102,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
                                     "Em breve" -> stringResource(R.string.status_upcoming)
                                     else -> stringResource(R.string.status_finished)
                                 }
-                                MatchFilterChip(label, selectedStatus == status, onClick = { viewModel.onStatusFilterSelected(status) })
+                                MatchFilterChip(label, selectedStatus == status, usePurple = true, onClick = { viewModel.onStatusFilterSelected(status) })
                             }
                         }
                         MatchCalendar(dateList, selectedDate, currentLocale, onSelect = { viewModel.onDateSelected(it) })
@@ -195,50 +168,43 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit) {
 }
 
 @Composable
-private fun MatchesHeader(updateState: UpdateCheckState, onCheckUpdates: () -> Unit) {
-    val updateLabel = stringResource(if (updateState == UpdateCheckState.Checking) R.string.update_checking else R.string.update_check)
-    Column {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(HubSpacing.ExtraSmall)) {
-                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-                Text(stringResource(R.string.beta_tag), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-            }
-            IconButton(onClick = onCheckUpdates, enabled = updateState != UpdateCheckState.Checking,
-                modifier = Modifier.semantics { contentDescription = updateLabel }) {
-                if (updateState == UpdateCheckState.Checking) {
-                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                } else {
-                    Icon(Icons.Default.SystemUpdateAlt, contentDescription = null)
-                }
-            }
-            LanguageSelector()
+private fun MatchesHeader(onOpenMenu: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().padding(bottom = HubSpacing.Small),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(HubSpacing.Medium)
+    ) {
+        FilledIconButton(
+            onClick = onOpenMenu,
+            shape = MaterialTheme.shapes.large,
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
+            Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.open_menu))
         }
-        val status = when (updateState) {
-            UpdateCheckState.Checking -> R.string.update_checking
-            UpdateCheckState.UpToDate -> R.string.update_up_to_date
-            UpdateCheckState.Available -> R.string.update_available_title
-            UpdateCheckState.Failed -> R.string.update_check_failed
-            else -> null
-        }
-        status?.let {
-            Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = HubSpacing.ExtraSmall).semantics { liveRegion = LiveRegionMode.Polite })
-        }
+        HubBrand(Modifier.weight(1f))
     }
 }
 
 @Composable
-private fun MatchFilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
+private fun MatchFilterChip(label: String, isSelected: Boolean, usePurple: Boolean = false, onClick: () -> Unit) {
     FilterChip(
         selected = isSelected, onClick = onClick,
         modifier = Modifier.heightIn(min = 48.dp),
         label = { Text(label, style = MaterialTheme.typography.labelLarge) },
         shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, when {
+            !isSelected -> MaterialTheme.colorScheme.outlineVariant
+            usePurple -> MaterialTheme.colorScheme.tertiary
+            else -> MaterialTheme.colorScheme.primary
+        }),
         colors = FilterChipDefaults.filterChipColors(
             containerColor = MaterialTheme.colorScheme.surface,
             labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+            selectedContainerColor = if (usePurple) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = if (usePurple) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onPrimaryContainer
         )
     )
 }
@@ -274,8 +240,8 @@ private fun MatchCalendar(dates: List<LocalDate>, selectedDate: LocalDate?, loca
             val description = date.format(descriptionFormatter)
             Surface(
                 onClick = { onSelect(date) }, shape = MaterialTheme.shapes.medium,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                color = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outlineVariant),
                 modifier = Modifier.widthIn(min = 52.dp).heightIn(min = 64.dp).semantics {
                     selected = isSelected
                     contentDescription = description
@@ -285,9 +251,9 @@ private fun MatchCalendar(dates: List<LocalDate>, selectedDate: LocalDate?, loca
                     horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(HubSpacing.ExtraSmall)) {
                     Text(date.dayOfWeek.getDisplayName(TextStyle.SHORT, locale).replace(".", ""),
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
+                        color = if (isSelected) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(String.format(locale, "%02d", date.dayOfMonth), style = MaterialTheme.typography.titleMedium,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface)
+                        color = if (isSelected) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurface)
                 }
             }
         }

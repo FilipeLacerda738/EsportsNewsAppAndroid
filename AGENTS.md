@@ -23,7 +23,7 @@ Android nativo, Kotlin/Gradle Kotlin DSL, módulo único `:app`, pacote/applicat
 
 **Stack:** Compose/Material 3, Activity Compose/AppCompat, Navigation Compose, Retrofit **3**/Gson/OkHttp, Coil Compose 2 e JUnit 4. Versões efetivas estão em `gradle/libs.versions.toml` **e** `app/build.gradle.kts` (há versões explícitas além do BOM); consultá-los antes de mudanças, sem atualização em massa. Não afirmar obsolescência/vulnerabilidade sem evidência.
 
-**Build:** minSdk **26**, compile/targetSdk **35**; source/target Java **11**, daemon Gradle exige JDK **21** (nível de linguagem ≠ runtime Gradle). Wrapper Gradle 9.4.1, AGP 9.2.1 e plugin Kotlin/Compose 2.2.10 no retrato analisado. Release usa R8/minificação e shrinkResources; modelos de domínio têm `@Keep`. `versionName` consulta tags e `versionCode` conta commits; não alterar Git para ajustar build.
+**Build:** minSdk **26**, compile/targetSdk **35**; source/target Java **11**, daemon Gradle exige JDK **21** (nível de linguagem ≠ runtime Gradle). Wrapper Gradle 9.4.1, AGP 9.2.1 e plugin Kotlin/Compose 2.2.10 no retrato analisado. Release usa R8/minificação e shrinkResources; modelos de domínio têm `@Keep`. `versionName` está explícito em `app/build.gradle.kts` (1.5.4); `versionCode` conta commits. A geração dessa versão não depende de uma nova tag; não alterar Git para ajustar build.
 
 `P = app/src/main/java/com/example/esportsnews`; caminhos relativos à raiz Android:
 
@@ -36,9 +36,11 @@ Android nativo, Kotlin/Gradle Kotlin DSL, módulo único `:app`, pacote/applicat
 | `P/MatchComponents.kt` / `P/ShimmerEffect.kt` | Cards, status, datas, skeleton/animações |
 | `P/MatchDates.kt` / `P/MatchRequests.kt` / `P/RequestErrors.kt` | Datas/fuso, calendário, sessão de detalhe, paginação, condições de polling e mensagens de falha |
 | `P/MatchStreams.kt` / `P/MatchWinners.kt` | Ordenação/domínios/canais de streams, bandeiras e associação de vencedor por ID PandaScore |
+| `P/MatchPrizepoolFormatting.kt` | Apresentação localizada de inteiros de premiação; preserva moeda explícita e textos já formatados sem conversão |
 | `P/model/` / `P/MatchDetail.kt` | DTOs Gson; MatchDetail está fora da pasta model, mas declara pacote `.model` |
 | `P/ExternalLinks.kt` | Validação de URL e Intent de navegador |
 | `P/LanguageSelector.kt` / `P/ui/theme/` | Idioma AppCompat; cores, tipografia e tema |
+| `P/SettingsScreen.kt` | Drawer, identidade do app, Configurações, ações de idioma/atualização e diálogo compartilhado de versão |
 | `P/ui/theme/DesignTokens.kt` | Escala de espaçamentos/dimensões e shapes Material 3 compartilhados pela lista e pelo detalhe |
 | `app/src/main/res/` | Strings pt padrão/en/es, locales e regras de backup |
 | `app/src/{main,debug}/AndroidManifest.xml` | Permissões, componentes e cleartext por variante |
@@ -66,7 +68,8 @@ Android nativo, Kotlin/Gradle Kotlin DSL, módulo único `:app`, pacote/applicat
 - Distinguir falhas de rede/HTTP/parsing de erros de programação. Não usar capturas indiscriminadas, código defensivo excessivo ou fallbacks que inventem sucesso/lista vazia/dados de domínio. Placeholder não é dado confirmado; tolerância da consulta de versão não se aplica às partidas.
 - Preservar APIs desde 26; revisar guards, lifecycle, recriação da Activity, idioma e restauração de navegação. Não mudar min/targetSdk incidentalmente; avaliar mudanças de comportamento em Android posterior.
 - **Tema:** esquema escuro por padrão alinhado a `DarkBackground/CardSurface/CardHeader/AccentBlue/LiveRed`, inclusive MaterialTheme do detalhe; cor dinâmica desativada por padrão. Cabeçalho/filtros rolam com a lista para caber em telas pequenas/fontes grandes. Shimmer e pisca respeitam `ValueAnimator.areAnimatorsEnabled`, observado uma vez na raiz e propagado por CompositionLocal; indicador ao vivo também tem texto.
-- **Layout mobile:** busca em largura total, filtros de jogo/status horizontais e tier em menu; calendário com dimensões mínimas que permitem crescimento do texto. Cards usam equipes com larguras equivalentes e placar central, com disposição vertical em largura reduzida/fonte ampliada. Detalhe agrupa campeonato/metadados, transmissões em linhas de largura total e jogadores por equipe, adaptando as colunas à largura/fonte. Usar tokens do tema para manter a hierarquia visual.
+- **Layout mobile:** busca em largura total, filtros de jogo/status horizontais e tier em menu; calendário com dimensões mínimas que permitem crescimento do texto. Cards usam identidade do campeonato, badges de tier, equipes com larguras equivalentes e placar central, com disposição vertical em largura reduzida/fonte ampliada. Detalhe agrupa campeonato/metadados, transmissões em carrossel horizontal e jogadores por equipe, adaptando as colunas à largura/fonte. Usar tokens do tema para manter a hierarquia visual.
+- **Menu e configurações:** `ModalNavigationDrawer` abre pelo cabeçalho da lista e de `settings`; idioma e atualização usam os controles compartilhados de Configurações. O diálogo de atualização é único na raiz, e a rota `settings` usa o mesmo ViewModel sem ativar polling da lista. Barras do Android permanecem visíveis com edge-to-edge e insets dos Scaffolds/drawer.
 - Textos em `res/values/`, `values-en/`, `values-es/`, mantendo formatos/placeholders e locales/seleção AppCompat. Mensagens úteis e localizadas, sem exceções brutas, URLs internas, IPs ou headers; sanitizar diagnóstico.
 - Considerar tela pequena, orientação, fonte ampliada, nomes longos, recortes, barras e safe insets/edge-to-edge (target 35). Não cortar conteúdo com alturas rígidas nem depender só de cor/animação. Semântica, foco, TalkBack, alvos de toque e descrições localizadas; descrição nula só para decoração/conteúdo já descrito. Considerar movimento reduzido em shimmer/pisca.
 - Distinguir loading inicial/refresh/próxima página, erro com/sem dados e vazio filtrado; manter retry/navegação. Dados ausentes de equipe, transmissão, imagem ou mapa não devem quebrar layout/ações.

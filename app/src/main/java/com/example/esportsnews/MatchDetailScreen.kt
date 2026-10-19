@@ -2,13 +2,18 @@ package com.example.esportsnews
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -78,7 +83,7 @@ fun MatchDetailScreen(
                         Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh_match))
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = CardSurface)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { paddingValues ->
@@ -110,7 +115,124 @@ fun MatchDetailScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun LeagueHeader(match: MatchDetail) {
+    val league = match.league
+    val logo = league?.dark_mode_image_url?.takeIf { it.isNotBlank() }
+        ?: league?.image_url?.takeIf { it.isNotBlank() }
+    Row(
+        Modifier.fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(HubSpacing.Medium),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(HubSpacing.Medium)
+    ) {
+        if (logo != null) {
+            AsyncImage(
+                model = logo,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(HubSpacing.ExtraSmall)) {
+            Text(
+                league?.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.match_detail_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.semantics { heading() },
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+private fun MatchFormatLine(match: MatchDetail) {
+    val gameName = if (match.game.equals("CSGO", ignoreCase = true)) "CS2" else match.game.uppercase(Locale.ROOT)
+    val format = match.numberOfGames?.takeIf { it > 0 }?.let { stringResource(R.string.best_of_format, it) }
+    Row(
+        Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(gameName, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+        if (format != null) {
+            Text("  •  ", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(format, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
+@Composable
+private fun MatchMetadataCards(match: MatchDetail, locale: Locale, zone: ZoneId) {
+    val date = formatMatchDate(
+        match.beginAt,
+        stringResource(R.string.to_be_defined),
+        stringResource(R.string.undefined),
+        locale,
+        zone
+    )
+    val prizepool = match.prizepool?.takeIf { it.isNotBlank() }
+    val tier = match.tier?.takeIf { it.isNotBlank() }
+
+    val dateLabel = stringResource(R.string.match_date_label)
+    val prizeLabel = stringResource(R.string.match_prizepool)
+    val tierLabel = stringResource(R.string.match_tier_label)
+    val entries = listOfNotNull(
+        MetadataEntry(dateLabel, date, Icons.Default.CalendarMonth),
+        prizepool?.let { MetadataEntry(prizeLabel, formatPrizepool(it, locale), Icons.Default.EmojiEvents, isPrize = true) },
+        tier?.let { MetadataEntry(tierLabel, it.uppercase(Locale.ROOT)) }
+    )
+    val configuration = LocalConfiguration.current
+    val compact = configuration.screenWidthDp < 380 || configuration.fontScale >= 1.25f
+    if (compact) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
+            entries.forEach { entry -> MetadataCard(entry, Modifier.fillMaxWidth()) }
+        }
+    } else {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
+            entries.forEach { entry ->
+                MetadataCard(entry, Modifier.weight(if (entry.isPrize) 1.3f else 1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun MetadataCard(entry: MetadataEntry, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(HubSpacing.Medium),
+            verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)
+        ) {
+            entry.icon?.let { icon ->
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (entry.isPrize) TierGold else MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Text(entry.label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(entry.value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+        }
+    }
+}
+
+private data class MetadataEntry(
+    val label: String,
+    val value: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    val isPrize: Boolean = false
+)
+
 @Composable
 fun MatchDetailContent(
     match: MatchDetail, error: Int? = null, onRetry: () -> Unit = {}, zone: ZoneId = ZoneId.systemDefault()
@@ -143,9 +265,23 @@ fun MatchDetailContent(
             }
         }
         item(key = "score") {
-            Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
-                Column(Modifier.fillMaxWidth().padding(HubSpacing.Large), verticalArrangement = Arrangement.spacedBy(HubSpacing.Medium)) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
+            Surface(
+                Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp
+            ) {
+                Column(
+                    Modifier.fillMaxWidth().padding(HubSpacing.Large),
+                    verticalArrangement = Arrangement.spacedBy(HubSpacing.Medium)
+                ) {
+                    LeagueHeader(match)
+                    MatchFormatLine(match)
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small)
+                    ) {
                         TeamLogoAndName(match.teamA, Modifier.weight(1f))
                         if (!compactHero) ScoreSummary(match, Modifier.widthIn(min = 72.dp).heightIn(min = HubDimensions.DetailTeamLogo))
                         TeamLogoAndName(match.teamB, Modifier.weight(1f))
@@ -158,27 +294,31 @@ fun MatchDetailContent(
             }
         }
         item(key = "context") {
-            Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface) {
-              Column(Modifier.fillMaxWidth().padding(HubSpacing.Large), verticalArrangement = Arrangement.spacedBy(HubSpacing.Medium)) {
-                match.league?.name?.takeIf { it.isNotBlank() }?.let {
-                    Text(it, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() }, color = MaterialTheme.colorScheme.onSurface)
-                }
-                Text(formatMatchDate(match.beginAt, stringResource(R.string.to_be_defined), stringResource(R.string.undefined), locale, zone), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small), verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
-                    match.numberOfGames?.takeIf { it > 0 }?.let { MetadataPill(stringResource(R.string.best_of_format, it)) }
-                    match.tier?.takeIf { it.isNotBlank() }?.let { MetadataPill(stringResource(R.string.tier_format, it.uppercase(Locale.ROOT))) }
-                    match.prizepool?.takeIf { it.isNotBlank() }?.let { MetadataPill("${stringResource(R.string.match_prizepool)} $it") }
-                }
-              }
-            }
+            MatchMetadataCards(match, locale, zone)
         }
         item(key = "streams_heading") {
-            Text(stringResource(R.string.watch_live_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth().semantics { heading() }, color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                stringResource(R.string.streams_title),
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.fillMaxWidth().semantics { heading() },
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
         if (streams.isEmpty()) {
             item(key = "no_streams") { Text(stringResource(R.string.no_streams), color = MaterialTheme.colorScheme.onSurfaceVariant) }
         } else {
-            items(items = streams, key = { "stream_${it.raw_url.orEmpty()}" }) { stream -> StreamButton(stream) }
+            item(key = "streams_carousel") {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = HubSpacing.ExtraSmall),
+                    horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small)
+                ) {
+                    items(items = streams, key = { "stream_${it.raw_url.orEmpty()}" }) {
+                        StreamCard(it, isLive = match.status.equals("running", ignoreCase = true))
+                    }
+                }
+            }
         }
         item(key = "players_heading") {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -196,14 +336,14 @@ fun MatchDetailContent(
         } else {
             item(key = "roster_team_headings") {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(match.teamA?.name ?: stringResource(R.string.to_be_defined), Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall)
-                    Text(match.teamB?.name ?: stringResource(R.string.to_be_defined), Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall)
+                    Text(match.teamA?.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.to_be_defined), Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall)
+                    Text(match.teamB?.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.to_be_defined), Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall)
                 }
             }
             if (playersA.isEmpty() || playersB.isEmpty()) item(key = "roster_empty") {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(if (playersA.isEmpty()) stringResource(R.string.no_players) else "", Modifier.weight(1f), textAlign = TextAlign.Center, color = TextSecondary)
-                    Text(if (playersB.isEmpty()) stringResource(R.string.no_players) else "", Modifier.weight(1f), textAlign = TextAlign.Center, color = TextSecondary)
+                    Text(if (playersA.isEmpty()) stringResource(R.string.no_players) else "", Modifier.weight(1f), textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(if (playersB.isEmpty()) stringResource(R.string.no_players) else "", Modifier.weight(1f), textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             items(count = maxOf(playersA.size, playersB.size), key = { "players_$it" }) { index ->
@@ -254,25 +394,56 @@ private fun ScoreSummary(match: MatchDetail, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun StreamButton(stream: Stream) {
+private fun StreamCard(stream: Stream, isLive: Boolean) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val channel = streamChannel(stream.raw_url)
+    val platform = streamPlatform(stream.raw_url)
+    val cardWidth = (124f * configuration.fontScale.coerceAtLeast(1f))
+        .coerceAtMost(configuration.screenWidthDp * 0.62f)
+        .coerceAtLeast(112f)
     val labels = listOfNotNull(
-        streamChannel(stream.raw_url),
-        streamPlatform(stream.raw_url),
         if (stream.official == true) stringResource(R.string.official_channel) else null,
         if (stream.main == true) stringResource(R.string.main_stream) else null,
         stream.language?.takeIf { it.matches(Regex("[a-zA-Z]{2,3}([_-][a-zA-Z]{2})?")) }?.uppercase(Locale.ROOT)
     )
-    OutlinedButton(
+    Card(
         onClick = { openExternalWebLink(context, stream.raw_url) },
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        shape = MaterialTheme.shapes.medium,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+        modifier = Modifier.width(cardWidth.dp).heightIn(min = 112.dp),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.spacedBy(HubSpacing.ExtraSmall)) {
-            Text(labels.firstOrNull() ?: stringResource(R.string.watch_live_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            labels.drop(1).takeIf { it.isNotEmpty() }?.let {
-                Text(it.joinToString(" • "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(
+            Modifier.fillMaxWidth().padding(HubSpacing.Medium),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)
+        ) {
+            Text(channel ?: platform, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            val secondaryLabels = listOfNotNull(platform.takeIf { channel != null }) + labels
+            secondaryLabels.takeIf { it.isNotEmpty() }?.let {
+                Text(it.joinToString(" • "), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Row(
+                Modifier.fillMaxWidth()
+                    .clip(MaterialTheme.shapes.small)
+                    .background(if (isLive) LiveRed else MaterialTheme.colorScheme.primaryContainer)
+                    .padding(horizontal = HubSpacing.Small, vertical = HubSpacing.ExtraSmall),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(HubSpacing.ExtraSmall)
+            ) {
+                Icon(
+                    Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    tint = if (isLive) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    stringResource(R.string.watch_live_title),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isLive) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
         }
     }
@@ -319,13 +490,6 @@ fun PlayerItem(player: Player, modifier: Modifier = Modifier) {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun MetadataPill(text: String) {
-    Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.surfaceVariant) {
-        Text(text, Modifier.padding(horizontal = HubSpacing.Small, vertical = HubSpacing.ExtraSmall), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
