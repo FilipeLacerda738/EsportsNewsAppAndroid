@@ -3,7 +3,7 @@
     <string name="app_name_caps">ESPORTS HUB</string>
     <string name="beta_tag">BETA</string>
 
-    <string name="search_team">Buscar time...</string>
+    <string name="search_team">Buscar por time</string>
     <string name="clear_search">Limpar busca</string>
     <string name="filter_tiers">Tiers</string>
     <string name="all_tiers">Todos os tiers</string>
@@ -65,8 +65,12 @@
 
     <string name="error_external_link">Não foi possível abrir este link. Verifique se há um navegador disponível.</string>
     <string name="load_more_matches">Carregar mais partidas</string>
-    <string name="local_filter_partial">O filtro considera apenas as partidas carregadas. Carregue mais para continuar a busca.</string>
-    <string name="local_filter_empty_hint">Filtro aplicado às partidas carregadas. Se não houver resultados, tente outra equipe ou data.</string>
+    <string name="clear_filters">Limpar filtros</string>
+    <string name="select_today">Hoje</string>
+    <string name="matches_count">%1$d partidas no total · %2$d carregadas</string>
+    <string name="last_successful_query">Última consulta bem-sucedida: %1$s</string>
+    <string name="error_invalid_calendar_date">Esta data não existe no fuso horário do dispositivo.</string>
+    <string name="error_search_unavailable">A busca por equipe e data ainda não está disponível no servidor. Tente novamente mais tarde ou limpe esses filtros.</string>
     <string name="matches_empty">Nenhuma partida encontrada para os filtros selecionados.</string>
     <string name="open_menu">Abrir menu</string>
     <string name="close_menu">Fechar menu</string>

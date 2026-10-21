@@ -3,7 +3,7 @@
     <string name="app_name_caps">ESPORTS HUB</string>
     <string name="beta_tag">BETA</string>
 
-    <string name="search_team">Search team...</string>
+    <string name="search_team">Search by team</string>
     <string name="clear_search">Clear search</string>
     <string name="filter_tiers">Tiers</string>
     <string name="all_tiers">All tiers</string>
@@ -64,8 +64,12 @@
     <string name="cd_player_photo">%1$s Photo</string>
     <string name="error_external_link">Could not open this link. Check that a browser is available.</string>
     <string name="load_more_matches">Load more matches</string>
-    <string name="local_filter_partial">The filter only includes loaded matches. Load more to continue searching.</string>
-    <string name="local_filter_empty_hint">Filter applied to loaded matches. If there are no results, try another team or date.</string>
+    <string name="clear_filters">Clear filters</string>
+    <string name="select_today">Today</string>
+    <string name="matches_count">%1$d matches total · %2$d loaded</string>
+    <string name="last_successful_query">Last successful query: %1$s</string>
+    <string name="error_invalid_calendar_date">This date does not exist in the device time zone.</string>
+    <string name="error_search_unavailable">Team and date search is not available on the server yet. Try again later or clear these filters.</string>
     <string name="matches_empty">No matches found for the selected filters.</string>
     <string name="open_menu">Open menu</string>
     <string name="close_menu">Close menu</string>

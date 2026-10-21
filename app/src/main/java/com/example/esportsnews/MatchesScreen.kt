@@ -47,7 +47,11 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit, onOp
     val selectedTier by viewModel.selectedTier.collectAsState()
     val dateList by viewModel.dateList.collectAsState()
     val deviceZone by viewModel.deviceZone.collectAsState()
-    val hasLocalFilter = searchQuery.isNotBlank() || selectedDate != null
+    val totalMatches by viewModel.totalMatches.collectAsState()
+    val loadedMatchesCount by viewModel.loadedMatchesCount.collectAsState()
+    val lastSuccessfulQuery by viewModel.lastSuccessfulQuery.collectAsState()
+    val hasSelectedFilters = selectedGame != "Todos" || selectedStatus != "Todos" ||
+        selectedTier != "Todos" || searchQuery.isNotBlank() || selectedDate != null
     val currentLocale = LocalConfiguration.current.locales[0]
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { paddingValues ->
@@ -68,7 +72,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit, onOp
                             value = searchQuery,
                             onValueChange = { viewModel.onSearchQueryChanged(it) },
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text(stringResource(R.string.search_team)) },
+                            label = { Text(stringResource(R.string.search_team)) },
                             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                             trailingIcon = if (searchQuery.isNotEmpty()) {
                                 { IconButton(onClick = { viewModel.onSearchQueryChanged("") }) {
@@ -106,8 +110,39 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit, onOp
                             }
                         }
                         MatchCalendar(dateList, selectedDate, currentLocale, onSelect = { viewModel.onDateSelected(it) })
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small)
+                        ) {
+                            OutlinedButton(
+                                onClick = viewModel::clearFilters,
+                                enabled = hasSelectedFilters,
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                            ) { Text(stringResource(R.string.clear_filters), textAlign = TextAlign.Center) }
+                            OutlinedButton(
+                                onClick = viewModel::selectToday,
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                            ) { Text(stringResource(R.string.select_today), textAlign = TextAlign.Center) }
+                        }
                         Text(stringResource(R.string.matches_section), style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(top = HubSpacing.Small).semantics { heading() })
+                        totalMatches?.let { total ->
+                            Text(
+                                stringResource(R.string.matches_count, total, loadedMatchesCount),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        lastSuccessfulQuery?.let { queriedAt ->
+                            val formatter = remember(currentLocale) {
+                                DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(currentLocale)
+                            }
+                            Text(
+                                stringResource(R.string.last_successful_query, formatter.format(queriedAt.atZone(deviceZone))),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
                 when {
@@ -127,23 +162,22 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit, onOp
                         }
                     }
                     else -> {
-                        if (hasLocalFilter || matches.isEmpty()) {
-                            item(key = "filter_hint") {
-                                Text(stringResource(
-                                    if (hasLocalFilter && hasMore) R.string.local_filter_partial
-                                    else if (hasLocalFilter) R.string.local_filter_empty_hint
-                                    else R.string.matches_empty
-                                ), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                        if (matches.isEmpty() && error == null && !isLoading && !isRefreshing) {
+                            item(key = "matches_empty") {
+                                Text(stringResource(R.string.matches_empty), style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = HubSpacing.Large), textAlign = TextAlign.Center)
                             }
                         }
                         items(matches, key = { it.id }, contentType = { "match" }) { match ->
                             ModernMatchCard(match, onClick = { onMatchClick(match.id) }, zone = deviceZone)
                         }
                         item(key = "pagination") {
-                            if (!hasLocalFilter && hasMore && error == null && !isLoading &&
+                            if (hasMore && error == null && !isLoading &&
                                 !isRefreshing && !isLoadingNextPage && matches.isNotEmpty()) {
-                                LaunchedEffect(matches.size, hasMore) { viewModel.loadNextPage() }
+                                LaunchedEffect(loadedMatchesCount, hasMore, error, isLoadingNextPage) {
+                                    viewModel.loadNextPage()
+                                }
                             }
                             when {
                                 error != null -> Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {

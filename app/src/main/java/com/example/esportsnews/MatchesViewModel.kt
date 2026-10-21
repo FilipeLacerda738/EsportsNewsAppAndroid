@@ -14,6 +14,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -21,6 +22,13 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
 
     private val _matches = MutableStateFlow<List<Match>>(emptyList())
     val matches: StateFlow<List<Match>> = _matches
+
+    private val _totalMatches = MutableStateFlow<Int?>(null)
+    val totalMatches: StateFlow<Int?> = _totalMatches
+    private val _loadedMatchesCount = MutableStateFlow(0)
+    val loadedMatchesCount: StateFlow<Int> = _loadedMatchesCount
+    private val _lastSuccessfulQuery = MutableStateFlow<Instant?>(null)
+    val lastSuccessfulQuery: StateFlow<Instant?> = _lastSuccessfulQuery
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -61,6 +69,8 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
 
     private var pollingJob: Job? = null
     private var listJob: Job? = null
+    private var searchJob: Job? = null
+    private var searchPending = false
     private var listGeneration = 0L
     private var listRequestActive = false
     private var listRequestIsPolling = false
@@ -228,6 +238,7 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun requestMatches(isRefresh: Boolean, loadNextPage: Boolean, polling: Boolean = false) {
+        if (searchPending) return
         if (loadNextPage && (!_hasMore.value || listRequestActive)) return
         if (listRequestActive && !isRefresh) return
         val generation = ++listGeneration
@@ -245,6 +256,20 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
             else -> _selectedGame.value
         }
         val apiTier = _selectedTier.value.takeUnless { it == "Todos" }
+        val apiTeamQuery = _searchQuery.value.trim().takeIf { it.isNotEmpty() }
+        val date = _selectedDate.value
+        val bounds = date?.let { localDayBounds(it, _deviceZone.value) }
+        if (date != null && bounds == null) {
+            listRequestActive = false
+            listRequestIsPolling = false
+            _isLoading.value = false
+            _isRefreshing.value = false
+            _isLoadingNextPage.value = false
+            _hasMore.value = false
+            retryNextPage = false
+            _error.value = R.string.error_invalid_calendar_date
+            return
+        }
         listRequestActive = true
         listRequestIsPolling = polling
         _isLoading.value = !isRefresh && !loadNextPage && !polling
@@ -253,18 +278,25 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
         _error.value = null
         listJob = viewModelScope.launch {
             try {
-                val result = RetrofitClient.api.getMatches(
+                val response = RetrofitClient.api.getMatches(
                     page = requestedPage,
                     game = apiGame,
                     status = apiStatus,
-                    tier = apiTier
+                    tier = apiTier,
+                    teamQuery = apiTeamQuery,
+                    beginAtGte = bounds?.first?.toString(),
+                    beginAtLt = bounds?.second?.toString()
                 )
 
                 if (generation != listGeneration) return@launch
+                val result = validateMatchResponse(response, apiTeamQuery != null || bounds != null)
                 allFetchedMatches = mergeMatchPage(allFetchedMatches, result, requestedPage, loadNextPage).toMutableList()
                 currentPage = requestedPage
                 _hasMore.value = result.hasMore
-                applyFilters()
+                _matches.value = allFetchedMatches.toList()
+                _loadedMatchesCount.value = allFetchedMatches.size
+                _totalMatches.value = result.total
+                _lastSuccessfulQuery.value = Instant.now()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: IOException) {
@@ -272,6 +304,8 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
             } catch (e: HttpException) {
                 reportListError(generation, loadNextPage, e)
             } catch (e: JsonParseException) {
+                reportListError(generation, loadNextPage, e)
+            } catch (e: SearchUnavailableException) {
                 reportListError(generation, loadNextPage, e)
             } finally {
                 if (generation == listGeneration) {
@@ -324,15 +358,37 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
         reloadFilters()
     }
 
-    private fun reloadFilters() {
+    private fun reloadFilters(debounce: Boolean = false) {
         ++listGeneration
+        searchJob?.cancel()
         listJob?.cancel()
         listRequestActive = false
+        listRequestIsPolling = false
+        searchPending = debounce
         allFetchedMatches.clear()
         currentPage = 1
         _hasMore.value = true
-        applyFilters()
-        fetchMatches()
+        retryNextPage = false
+        _matches.value = emptyList()
+        _totalMatches.value = null
+        _loadedMatchesCount.value = 0
+        _lastSuccessfulQuery.value = null
+        _error.value = null
+        _isLoading.value = true
+        _isRefreshing.value = false
+        _isLoadingNextPage.value = false
+        if (debounce) {
+            val generation = listGeneration
+            searchJob = viewModelScope.launch {
+                delay(350)
+                if (generation == listGeneration) {
+                    searchPending = false
+                    fetchMatches()
+                }
+            }
+        } else {
+            fetchMatches()
+        }
     }
 
     fun onDateSelected(date: LocalDate?) {
@@ -342,33 +398,34 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
             managePolling()
         }
         _selectedDate.value = if (_selectedDate.value == date) null else date
-        if (changeStatus) reloadFilters() else applyFilters()
+        reloadFilters()
     }
 
     fun onSearchQueryChanged(query: String) {
+        if (_searchQuery.value == query) return
         _searchQuery.value = query
-        applyFilters()
+        reloadFilters(debounce = query.isNotBlank())
     }
 
-    private fun applyFilters() {
-        val query = _searchQuery.value.trim().lowercase()
-        val targetDate = _selectedDate.value
+    fun clearFilters() {
+        _selectedGame.value = "Todos"
+        _selectedStatus.value = "Todos"
+        _selectedTier.value = "Todos"
+        _searchQuery.value = ""
+        _selectedDate.value = null
+        reloadFilters()
+        managePolling()
+    }
 
-        var filteredList = allFetchedMatches.toList()
-
-        if (query.isNotEmpty()) {
-            filteredList = filteredList.filter { match ->
-                match.team_a?.name?.lowercase()?.contains(query) == true ||
-                        match.team_b?.name?.lowercase()?.contains(query) == true
-            }
-        }
-
-        if (targetDate != null) {
-            filteredList = filteredList.filter { match ->
-                matchDateTime(match.begin_at, _deviceZone.value)?.toLocalDate() == targetDate
-            }
-        }
-        _matches.value = filteredList
+    fun selectToday() {
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now(zone)
+        _deviceZone.value = zone
+        _dateList.value = calendarDates(today)
+        _selectedDate.value = today
+        if (_selectedStatus.value == "Ao Vivo") _selectedStatus.value = "Todos"
+        reloadFilters()
+        managePolling()
     }
 
     fun setListActive(active: Boolean) {
@@ -394,13 +451,17 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun refreshCalendar() {
-        val days = calendarDates(LocalDate.now())
         val zone = ZoneId.systemDefault()
+        val days = calendarDates(LocalDate.now(zone))
         if (_dateList.value != days || _deviceZone.value != zone) {
+            val previousDate = _selectedDate.value
+            val zoneChanged = _deviceZone.value != zone
             _dateList.value = days
             _deviceZone.value = zone
             if (_selectedDate.value !in days) _selectedDate.value = null
-            applyFilters()
+            if (previousDate != _selectedDate.value || (zoneChanged && previousDate != null)) {
+                reloadFilters()
+            }
         }
     }
 
@@ -410,7 +471,7 @@ class MatchesViewModel(application: Application) : AndroidViewModel(application)
             pollingJob = viewModelScope.launch {
                 while (isActive) {
                     delay(30000)
-                    if (shouldPollMatches(listActive, _selectedStatus.value, currentPage, listRequestActive, _error.value != null)) {
+                    if (shouldPollMatches(listActive, _selectedStatus.value, currentPage, listRequestActive, _error.value != null, searchPending)) {
                         requestMatches(isRefresh = false, loadNextPage = false, polling = true)
                     }
                 }

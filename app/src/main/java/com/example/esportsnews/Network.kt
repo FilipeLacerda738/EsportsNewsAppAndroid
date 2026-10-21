@@ -23,7 +23,7 @@ data class AppVersion(
 
 @Keep
 data class PaginatedMatchResponse(
-    @SerializedName("total") val total: Int,
+    @SerializedName("total") val total: Int?,
     @SerializedName("page") val page: Int,
     @SerializedName("size") val size: Int,
     @SerializedName("has_more") val hasMore: Boolean,
@@ -39,8 +39,11 @@ interface ApiService {
         @Query("status") status: String?,
         @Query("limit") limit: Int = 15,
         @Query("data_calendario") dataCalendario: String? = null,
-        @Query("tier") tier: String? = null
-    ): PaginatedMatchResponse
+        @Query("tier") tier: String? = null,
+        @Query("team_query") teamQuery: String? = null,
+        @Query("begin_at_gte") beginAtGte: String? = null,
+        @Query("begin_at_lt") beginAtLt: String? = null
+    ): Response<PaginatedMatchResponse>
 
     @Headers("Cache-Control: no-cache")
     @GET("api/v1/matches/{match_id}/details")

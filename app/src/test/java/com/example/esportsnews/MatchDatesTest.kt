@@ -2,6 +2,8 @@ package com.example.esportsnews
 
 import org.junit.Assert.*
 import org.junit.Test
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Locale
@@ -23,6 +25,36 @@ class MatchDatesTest {
         val newYork = ZoneId.of("America/New_York")
         assertEquals(1, matchDateTime("2026-03-08T06:59:00Z", newYork)!!.hour)
         assertEquals(3, matchDateTime("2026-03-08T07:01:00Z", newYork)!!.hour)
+    }
+
+    @Test
+    fun remoteDayBoundsUseLocalMidnightAndExclusiveNextDay() {
+        val bounds = localDayBounds(LocalDate.of(2026, 10, 17), zone)!!
+        assertEquals(Instant.parse("2026-10-17T03:00:00Z"), bounds.first)
+        assertEquals(Instant.parse("2026-10-18T03:00:00Z"), bounds.second)
+        assertEquals(LocalDate.of(2026, 10, 17), bounds.second.minusNanos(1).atZone(zone).toLocalDate())
+        assertEquals(LocalDate.of(2026, 10, 18), bounds.second.atZone(zone).toLocalDate())
+        val tokyo = localDayBounds(LocalDate.of(2026, 10, 17), ZoneId.of("Asia/Tokyo"))!!
+        assertEquals(Instant.parse("2026-10-16T15:00:00Z"), tokyo.first)
+        assertNotEquals(bounds, tokyo)
+    }
+
+    @Test
+    fun remoteDayBoundsRespectShortAndLongDays() {
+        val newYork = ZoneId.of("America/New_York")
+        val spring = localDayBounds(LocalDate.of(2026, 3, 8), newYork)!!
+        val autumn = localDayBounds(LocalDate.of(2026, 11, 1), newYork)!!
+        assertEquals(23L, Duration.between(spring.first, spring.second).toHours())
+        assertEquals(25L, Duration.between(autumn.first, autumn.second).toHours())
+    }
+
+    @Test
+    fun remoteDayBoundsHandleMidnightGapAndRejectSkippedDay() {
+        val gap = localDayBounds(LocalDate.of(2018, 11, 4), zone)!!
+        assertEquals(1, gap.first.atZone(zone).hour)
+        assertEquals(LocalDate.of(2018, 11, 4), gap.first.atZone(zone).toLocalDate())
+        assertEquals(23L, Duration.between(gap.first, gap.second).toHours())
+        assertNull(localDayBounds(LocalDate.of(2011, 12, 30), ZoneId.of("Pacific/Apia")))
     }
 
     @Test

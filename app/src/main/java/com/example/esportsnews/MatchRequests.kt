@@ -3,6 +3,22 @@ package com.example.esportsnews
 import com.example.esportsnews.model.Match
 import com.example.esportsnews.model.MatchDetail
 import com.google.gson.JsonParseException
+import retrofit2.HttpException
+import retrofit2.Response
+
+internal class SearchUnavailableException : Exception()
+
+internal fun validateMatchResponse(
+    response: Response<PaginatedMatchResponse>,
+    requiresSearchContract: Boolean
+): PaginatedMatchResponse {
+    if (!response.isSuccessful) throw HttpException(response)
+    val body = response.body() ?: throw JsonParseException("Missing match response")
+    if (requiresSearchContract && response.headers().values("X-Match-Search-Version") != listOf("1")) {
+        throw SearchUnavailableException()
+    }
+    return body
+}
 
 // A screen owns a session; refreshing creates a request without changing that ownership.
 internal class DetailRequestSession {
@@ -42,16 +58,23 @@ internal fun mergeMatchPage(
     append: Boolean
 ): List<Match> {
     if (response.page != requestedPage) throw JsonParseException("Unexpected match page")
+    if (response.total == null || response.total < 0 || response.size < 0) {
+        throw JsonParseException("Invalid match pagination")
+    }
     val items: List<Match?>? = response.items
     if (items == null || items.any { it == null || it.status.isNullOrBlank() || it.game.isNullOrBlank() }) {
         throw JsonParseException("Invalid match items")
+    }
+    if (items.size != response.size || items.size > response.total || (items.isEmpty() && response.hasMore)) {
+        throw JsonParseException("Invalid match pagination")
     }
     return (if (append) previous + response.items else response.items).distinctBy { it.id }
 }
 
 internal fun shouldPollMatches(
-    active: Boolean, status: String, page: Int, requestActive: Boolean, hasError: Boolean
-): Boolean = active && status in listOf("Todos", "Ao Vivo") && page == 1 && !requestActive && !hasError
+    active: Boolean, status: String, page: Int, requestActive: Boolean, hasError: Boolean,
+    queryPending: Boolean = false
+): Boolean = active && status in listOf("Todos", "Ao Vivo") && page == 1 && !requestActive && !hasError && !queryPending
 
 internal fun shouldPollDetail(
     active: Boolean, status: String?, requestActive: Boolean, hasError: Boolean

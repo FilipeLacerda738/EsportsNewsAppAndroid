@@ -6,6 +6,7 @@ import java.io.IOException
 import java.net.SocketTimeoutException
 
 internal fun requestErrorMessage(error: Exception): Int = when (error) {
+    is SearchUnavailableException -> R.string.error_search_unavailable
     is SocketTimeoutException -> R.string.error_timeout
     is HttpException -> when (error.code()) {
         401, 403 -> R.string.error_access_denied

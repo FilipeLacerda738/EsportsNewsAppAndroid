@@ -15,6 +15,7 @@ class RequestErrorsTest {
         assertEquals(R.string.error_timeout, requestErrorMessage(SocketTimeoutException()))
         assertEquals(R.string.error_connection, requestErrorMessage(IOException()))
         assertEquals(R.string.error_invalid_response, requestErrorMessage(JsonParseException("synthetic")))
+        assertEquals(R.string.error_search_unavailable, requestErrorMessage(SearchUnavailableException()))
         for (code in listOf(401, 403)) assertEquals(R.string.error_access_denied, httpMessage(code))
         assertEquals(R.string.error_not_found, httpMessage(404))
         assertEquals(R.string.error_timeout, httpMessage(504))
