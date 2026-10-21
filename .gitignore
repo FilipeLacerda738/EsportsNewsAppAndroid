@@ -47,5 +47,9 @@ Desktop.ini
 *.swo
 *~
 
-# AGENTS.md, .codex/config.toml, .codex/agents/*.toml e o Gradle Wrapper
+# Documentação interna de trabalho, mantida apenas localmente
+/AGENTS.md
+/PLANO_ATUALIZACOES.md
+
+# .codex/config.toml, .codex/agents/*.toml e o Gradle Wrapper
 # são configurações compartilháveis e devem continuar versionáveis.
