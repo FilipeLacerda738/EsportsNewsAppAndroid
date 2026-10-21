@@ -81,4 +81,7 @@
     <string name="streams_title">Transmissões ao vivo</string>
     <string name="match_date_label">Data</string>
     <string name="match_tier_label">Tier</string>
+    <string name="cached_data_stale">Os dados salvos podem estar desatualizados. Atualize para consultar a rede.</string>
+    <string name="settings_updates">Atualizações</string>
+    <string name="settings_about">Sobre</string>
 </resources>

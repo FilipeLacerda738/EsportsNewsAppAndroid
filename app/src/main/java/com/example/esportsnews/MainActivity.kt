@@ -66,24 +66,24 @@ class MainActivity : AppCompatActivity() {
                         drawerContent = {
                             ModalDrawerSheet(drawerContainerColor = MaterialTheme.colorScheme.background) {
                                 HubDrawer(
-                                    viewModel = viewModel,
                                     isSettings = route == "settings",
                                     onClose = closeMenu,
                                     onMatches = {
                                         scope.launch {
                                             drawerState.close()
-                                            navController.navigate("matches_list") {
-                                                popUpTo("matches_list") { saveState = true }
-                                                launchSingleTop = true
-                                                restoreState = true
+                                            if (navController.currentDestination?.route != "matches_list") {
+                                                navController.popBackStack("matches_list", inclusive = false)
                                             }
                                         }
                                     },
                                     onSettings = {
                                         scope.launch {
                                             drawerState.close()
-                                            navController.navigate("settings") {
-                                                launchSingleTop = true
+                                            if (navController.currentDestination?.route != "settings") {
+                                                navController.navigate("settings") {
+                                                    popUpTo("matches_list")
+                                                    launchSingleTop = true
+                                                }
                                             }
                                         }
                                     }
@@ -107,7 +107,9 @@ class MainActivity : AppCompatActivity() {
                                 }
                                 MatchesScreen(
                                     viewModel = viewModel,
-                                    onMatchClick = { matchId -> navController.navigate("match_detail/$matchId") },
+                                    onMatchClick = { matchId ->
+                                        navController.navigate("match_detail/$matchId") { launchSingleTop = true }
+                                    },
                                     onOpenMenu = openMenu
                                 )
                             }

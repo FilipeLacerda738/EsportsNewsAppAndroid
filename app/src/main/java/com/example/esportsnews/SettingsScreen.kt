@@ -38,13 +38,11 @@ internal fun HubBrand(modifier: Modifier = Modifier) {
 
 @Composable
 internal fun HubDrawer(
-    viewModel: MatchesViewModel,
     isSettings: Boolean,
     onClose: () -> Unit,
     onMatches: () -> Unit,
     onSettings: () -> Unit
 ) {
-    val updateState by viewModel.updateCheckState.collectAsState()
     BoxWithConstraints(Modifier.fillMaxHeight()) {
         val minimumHeight = maxHeight
         Column(
@@ -87,13 +85,9 @@ internal fun HubDrawer(
                         selectedIconColor = MaterialTheme.colorScheme.tertiary
                     )
                 )
-                HorizontalDivider(Modifier.padding(vertical = HubSpacing.Small), color = MaterialTheme.colorScheme.outlineVariant)
-                Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.semantics { heading() })
-                SettingsOptions(updateState, onCheckUpdates = viewModel::checkForUpdates)
                 Spacer(Modifier.height(HubSpacing.Large))
             }
-            VersionFooter(updateState)
+            VersionFooter()
         }
     }
 }
@@ -115,10 +109,12 @@ fun SettingsScreen(viewModel: MatchesViewModel, onOpenMenu: () -> Unit) {
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(HubSpacing.Large),
             verticalArrangement = Arrangement.spacedBy(HubSpacing.Large)) {
-            HubBrand()
-            Text(stringResource(R.string.hub_tagline), color = MaterialTheme.colorScheme.onSurfaceVariant)
             SettingsOptions(updateState, onCheckUpdates = viewModel::checkForUpdates)
-            VersionFooter(updateState)
+            SettingsSection(stringResource(R.string.settings_about), Icons.Default.Info) {
+                HubBrand()
+                Text(stringResource(R.string.hub_tagline), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                VersionFooter()
+            }
         }
     }
 }
@@ -126,15 +122,35 @@ fun SettingsScreen(viewModel: MatchesViewModel, onOpenMenu: () -> Unit) {
 @Composable
 private fun SettingsOptions(updateState: UpdateCheckState, onCheckUpdates: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(HubSpacing.Medium)) {
-        LanguageSelector()
-        SettingsAction(
-            title = stringResource(R.string.update_check),
-            subtitle = updateStatus(updateState)?.let { stringResource(it) },
-            icon = Icons.Default.Sync,
-            enabled = updateState != UpdateCheckState.Checking,
-            onClick = onCheckUpdates,
-            checking = updateState == UpdateCheckState.Checking
-        )
+        SettingsSection(stringResource(R.string.settings_language), Icons.Default.Language) {
+            LanguageSelector()
+        }
+        SettingsSection(stringResource(R.string.settings_updates), Icons.Default.Sync) {
+            SettingsAction(
+                title = stringResource(R.string.update_check),
+                subtitle = updateStatus(updateState)?.let { stringResource(it) },
+                icon = Icons.Default.Sync,
+                enabled = updateState != UpdateCheckState.Checking,
+                onClick = onCheckUpdates,
+                checking = updateState == UpdateCheckState.Checking
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsSection(title: String, icon: ImageVector, content: @Composable ColumnScope.() -> Unit) {
+    Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        Column(Modifier.fillMaxWidth().padding(HubSpacing.Medium),
+            verticalArrangement = Arrangement.spacedBy(HubSpacing.Medium)) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+            }
+            content()
+        }
     }
 }
 
@@ -173,16 +189,12 @@ internal fun SettingsAction(
 }
 
 @Composable
-private fun VersionFooter(updateState: UpdateCheckState) {
+private fun VersionFooter() {
     Column(verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleSmall)
         Text(stringResource(R.string.settings_version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
             color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-        updateStatus(updateState)?.let {
-            Text(stringResource(it), color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall)
-        }
     }
 }
 

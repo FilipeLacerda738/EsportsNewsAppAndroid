@@ -39,7 +39,7 @@ android {
         targetSdk = 35
 
         versionCode = getAppVersionCode()
-        versionName = "1.6.0"
+        versionName = "1.6.1"
 
         val apiKey = localProperties.getProperty("API_KEY") ?: ""
         buildConfigField("String", "API_KEY", "\"$apiKey\"")

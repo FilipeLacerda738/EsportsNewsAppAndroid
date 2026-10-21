@@ -80,4 +80,7 @@
     <string name="streams_title">Live streams</string>
     <string name="match_date_label">Date</string>
     <string name="match_tier_label">Tier</string>
+    <string name="cached_data_stale">Saved data may be out of date. Refresh to query the network.</string>
+    <string name="settings_updates">Updates</string>
+    <string name="settings_about">About</string>
 </resources>

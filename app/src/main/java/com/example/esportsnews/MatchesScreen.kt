@@ -38,6 +38,7 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit, onOp
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val error by viewModel.error.collectAsState()
+    val dataStale by viewModel.listDataStale.collectAsState()
     val hasMore by viewModel.hasMore.collectAsState()
     val isLoadingNextPage by viewModel.isLoadingNextPage.collectAsState()
     val selectedGame by viewModel.selectedGame.collectAsState()
@@ -132,6 +133,11 @@ fun MatchesScreen(viewModel: MatchesViewModel, onMatchClick: (Int) -> Unit, onOp
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        }
+                        if (dataStale) {
+                            Text(stringResource(R.string.cached_data_stale),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         lastSuccessfulQuery?.let { queriedAt ->
                             val formatter = remember(currentLocale) {

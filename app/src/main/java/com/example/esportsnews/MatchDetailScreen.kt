@@ -37,6 +37,9 @@ import com.example.esportsnews.model.*
 import com.example.esportsnews.ui.theme.*
 import java.util.Locale
 import java.time.ZoneId
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +53,8 @@ fun MatchDetailScreen(
     val isLoading by viewModel.isDetailLoading.collectAsState()
     val isRefreshing by viewModel.isDetailRefreshing.collectAsState()
     val error by viewModel.detailError.collectAsState()
+    val dataStale by viewModel.detailDataStale.collectAsState()
+    val queriedAt by viewModel.lastSuccessfulDetailQuery.collectAsState()
     val deviceZone by viewModel.deviceZone.collectAsState()
     var session by remember(matchId) { mutableStateOf<Long?>(null) }
 
@@ -93,7 +98,7 @@ fun MatchDetailScreen(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
         ) {
             if (currentDetail != null) {
-                MatchDetailContent(currentDetail, error, refresh, deviceZone)
+                MatchDetailContent(currentDetail, error, refresh, deviceZone, dataStale, queriedAt)
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -235,7 +240,8 @@ private data class MetadataEntry(
 
 @Composable
 fun MatchDetailContent(
-    match: MatchDetail, error: Int? = null, onRetry: () -> Unit = {}, zone: ZoneId = ZoneId.systemDefault()
+    match: MatchDetail, error: Int? = null, onRetry: () -> Unit = {}, zone: ZoneId = ZoneId.systemDefault(),
+    dataStale: Boolean = false, queriedAt: Instant? = null
 ) {
     val locale = LocalConfiguration.current.locales[0]
     val streams = orderedStreams(match.streams, locale.language).ifEmpty {
@@ -254,6 +260,20 @@ fun MatchDetailContent(
         verticalArrangement = Arrangement.spacedBy(HubSpacing.Medium),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        if (dataStale || queriedAt != null) {
+            item(key = "data_freshness") {
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
+                    if (dataStale) Text(stringResource(R.string.cached_data_stale), style = MaterialTheme.typography.bodySmall)
+                    queriedAt?.let {
+                        val formatter = remember(locale) {
+                            DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale)
+                        }
+                        Text(stringResource(R.string.last_successful_query, formatter.format(it.atZone(zone))),
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        }
         if (error != null) {
             item(key = "refresh_error") {
                 Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.errorContainer) {
