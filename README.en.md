@@ -56,7 +56,7 @@ This project was built using state-of-the-art native Android development technol
 
 The application is constantly evolving. Here are the next engineering and feature milestones:
 
-* **[Current Phase] v1.4.0 (Fluidity & Retention):** Offline Cache implementation (Room Database) for instant startup and Infinite Scroll pagination for reduced mobile data consumption.
+* **Current:** in-memory cache, pagination, search, filters, details and app updates. Offline persistence with Room is a future step.
 * **[Phase 2] Analytical Vision:** Match detail pages with individual map status (BO3), bracket tracking, and momentum graphs.
 * **[Phase 3] Monetization & Engagement:** Real-time odds integration, affiliate dashboard for regulated betting platforms, and a Pick'em prediction system.
 
@@ -66,9 +66,9 @@ The application is constantly evolving. Here are the next engineering and featur
 
 ## Prerequisites
 
-* Android Studio Iguana+
-* JDK 17
-* Android SDK 26+
+* Android Studio compatible with AGP 9.2.1 / Gradle 9.4.1
+* JDK 21 (validated; Java 11 bytecode)
+* Android SDK 35; minimum runtime Android 8.0 (API 26)
 
 ---
 
@@ -84,7 +84,8 @@ cd EsportsNewsAppAndroid
 Create a `local.properties` file in the project root:
 
 ```properties
-API_ACCESS_KEY="your_access_key_here"
+API_KEY=your_access_key_here
+DEBUG_API_BASE_URL=https://esports-pro-api.onrender.com/
 ```
 
 ---
@@ -99,19 +100,24 @@ API_ACCESS_KEY="your_access_key_here"
 
 # 🌐 Network Architecture
 
-The application automatically switches between local and production environments using `BuildConfig.DEBUG`.
+The URL is selected by build variant. The example above points debug to Render. Without `DEBUG_API_BASE_URL`, debug defaults to `http://127.0.0.1:8000/`; use `http://10.0.2.2:8000/` for a local backend from the emulator. Release uses `https://esports-pro-api.onrender.com/`.
 
-| Environment | URL                       |
-| ----------- | ------------------------- |
-| Debug       | `http://10.0.2.2:8000/`   |
-| Release     | `https://yourDeploy.com/` |
+Keep the Android Studio `sdk.dir` setting in `local.properties`. Property values must not be quoted. `API_ACCESS_KEY` remains a fallback when `API_KEY` is absent. Do not commit this file.
 
----
-
-All requests use header-based authentication:
+All requests use this header:
 
 ```http
-API_ACCESS_KEY: YOUR_API_KEY
+X-API-Key: YOUR_API_KEY
+```
+
+Match caching is in memory only, without Room or offline persistence: up to 40 pages and 20 details, fresh for 30 seconds and retained for up to 10 minutes. Displayed data remains available when revalidation fails. List and detail ViewModels own separate caches and jobs; Activity scope preserves history during navigation. Polling runs every 30 seconds while the destination is active and pauses when it leaves the screen.
+
+Screens receive immutable state and callbacks; routes collect state with lifecycle. Repositories accept an API in their constructor, and match ViewModels accept replaceable clocks for testing.
+
+Local validation without Render requests:
+
+```bash
+./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lint
 ```
 
 ---
@@ -139,17 +145,6 @@ After that, simply open a Pull Request 🚀
 
 ---
 
-# 🗺 Roadmap
-
-* [ ] Match details screen
-* [ ] WebSocket integration
-* [ ] Offline cache with Room
-* [ ] Push notifications
-* [ ] Favorites system
-* [ ] AMOLED theme
-
----
-
 # 📄 License
 
 Distributed under the GNU General Public License v3.0 LICENSE.
@@ -160,6 +155,6 @@ See `LICENSE` for more information.
 
 <div align="center">
 
-Built with ❤️ using Kotlin + Jetpack Compose
+Built using Kotlin + Jetpack Compose
 
 </div>

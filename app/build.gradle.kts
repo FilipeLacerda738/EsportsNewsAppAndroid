@@ -41,7 +41,9 @@ android {
         versionCode = getAppVersionCode()
         versionName = "1.6.1"
 
-        val apiKey = localProperties.getProperty("API_KEY") ?: ""
+        val apiKey = localProperties.getProperty("API_KEY")
+            ?: localProperties.getProperty("API_ACCESS_KEY")
+            ?: ""
         buildConfigField("String", "API_KEY", "\"$apiKey\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -99,6 +101,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
+    implementation(libs.lifecycle.runtime.compose)
+    testImplementation(libs.coroutines.test)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
@@ -106,11 +110,11 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
-    implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("androidx.compose.material3:material3:1.3.0")
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.appcompat)
+    implementation(libs.navigation.compose)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.compose.material.icons)
 }

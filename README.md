@@ -53,7 +53,7 @@ Este projeto foi construído utilizando o estado da arte do desenvolvimento Andr
 
 O aplicativo está em constante evolução. Aqui estão os próximos passos de engenharia e funcionalidades:
 
-* **[Fase Atual] v1.4.0 (Fluidez e Retenção):** Implementação de Cache Offline (Room Database) para abertura instantânea e Paginação (Infinite Scroll) para economia de dados.
+* **Atual:** cache em memória, paginação, busca, filtros, detalhes e atualização do aplicativo. Persistência offline com Room fica para uma etapa futura.
 * **[Fase 2] Visão Analítica:** Páginas de detalhes com status de mapas individuais (MD3), acompanhamento de chaves (Brackets) e gráficos de momento.
 * **[Fase 3] Monetização e Engajamento:** Integração de *Odds* em tempo real, painel de afiliados para plataformas regulamentadas e sistema de *Pick'ems*.
 
@@ -64,9 +64,9 @@ O aplicativo está em constante evolução. Aqui estão os próximos passos de e
 
 ## Pré-requisitos
 
-* Android Studio Iguana+
-* JDK 17
-* Android SDK 26+
+* Android Studio compatível com AGP 9.2.1 / Gradle 9.4.1
+* JDK 21 (validado; bytecode Java 11)
+* Android SDK 35; Android 8.0 (API 26) mínimo
 
 ---
 
@@ -82,7 +82,8 @@ cd EsportsNewsAppAndroid
 Crie um arquivo `local.properties` na raiz do projeto:
 
 ```properties
-API_ACCESS_KEY="sua_chave_de_acesso_aqui"
+API_KEY=sua_chave_de_acesso_aqui
+DEBUG_API_BASE_URL=https://esports-pro-api.onrender.com/
 ```
 
 ---
@@ -97,19 +98,24 @@ API_ACCESS_KEY="sua_chave_de_acesso_aqui"
 
 # 🌐 Arquitetura de Rede
 
-O aplicativo alterna automaticamente entre ambiente local e produção através do `BuildConfig.DEBUG`.
+A URL é definida por variante no build. O exemplo acima configura o debug para o Render. Sem `DEBUG_API_BASE_URL`, o padrão debug é `http://127.0.0.1:8000/`; para backend local no emulador, use `http://10.0.2.2:8000/`. Release usa `https://esports-pro-api.onrender.com/`.
 
-| Ambiente | URL                                     |
-| -------- | --------------------------------------- |
-| Debug    | `http://10.0.2.2:8000/`                 |
-| Release  | `https://seuDeploy.com/` |
+Em `local.properties`, mantenha `sdk.dir` configurado pelo Android Studio. Valores de propriedades não usam aspas. `API_ACCESS_KEY` continua aceito como alternativa quando `API_KEY` estiver ausente. Não versione esse arquivo.
 
----
-
-Todos os requests utilizam autenticação via header:
+Todos os requests usam o header:
 
 ```http
-API_ACCESS_KEY: SUA_API_KEY
+X-API-Key: SUA_API_KEY
+```
+
+O cache de partidas é apenas em memória, sem Room ou persistência offline: até 40 páginas e 20 detalhes, frescos por 30 segundos e retidos por até 10 minutos. Dados já exibidos continuam disponíveis quando uma atualização falha. A listagem e os detalhes possuem seus próprios caches e jobs; os ViewModels pertencem à Activity, preservando o histórico ao navegar. Polling de 30 segundos acompanha o lifecycle de cada destino e pausa quando ele sai da tela.
+
+As telas recebem estado imutável e callbacks; as rotas observam o estado com lifecycle. Repositórios recebem a API por construtor, e os ViewModels de partidas recebem relógios substituíveis nos testes.
+
+Validação local sem chamadas ao Render:
+
+```bash
+./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lint
 ```
 
 ---
@@ -137,17 +143,6 @@ Depois disso, basta abrir um Pull Request 🚀
 
 ---
 
-# 🗺 Roadmap
-
-* [ ] Tela de detalhes da partida
-* [ ] Integração com WebSockets
-* [ ] Cache offline com Room
-* [ ] Push notifications
-* [ ] Favoritos
-* [ ] Tema AMOLED
-
----
-
 # 📄 Licença
 
 Distribuído sob a licença GNU General Public License v3.0.
@@ -158,6 +153,6 @@ Veja `LICENSE` para mais informações.
 
 <div align="center">
 
-Feito com ❤️ utilizando Kotlin + Jetpack Compose
+Feito utilizando Kotlin + Jetpack Compose
 
 </div>
