@@ -1,5 +1,6 @@
 package com.example.esportsnews.feature.matchdetail
 
+import androidx.activity.compose.BackHandler
 import com.example.esportsnews.R
 import com.example.esportsnews.feature.matchdetail.components.MatchDetailContent
 
@@ -28,6 +29,7 @@ fun MatchDetailScreen(
     refresh: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    BackHandler(onBack = onNavigateBack)
     val detail = state.matchDetail
     val isLoading = state.isDetailLoading
     val isRefreshing = state.isDetailRefreshing

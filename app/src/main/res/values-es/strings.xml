@@ -67,7 +67,7 @@
     <string name="clear_filters">Borrar filtros</string>
     <string name="select_today">Hoy</string>
     <string name="matches_count">%1$d partidos en total · %2$d cargados</string>
-    <string name="last_successful_query">Última consulta correcta: %1$s</string>
+    <string name="last_successful_query">Actualizado a las %1$s</string>
     <string name="error_invalid_calendar_date">Esta fecha no existe en la zona horaria del dispositivo.</string>
     <string name="error_search_unavailable">La búsqueda por equipo y fecha todavía no está disponible en el servidor. Inténtalo de nuevo más tarde o borra estos filtros.</string>
     <string name="matches_empty">No se encontraron partidos para los filtros seleccionados.</string>
@@ -83,4 +83,7 @@
     <string name="cached_data_stale">Los datos guardados pueden estar desactualizados. Actualiza para consultar la red.</string>
     <string name="settings_updates">Actualizaciones</string>
     <string name="settings_about">Acerca de</string>
+    <string name="more_filters">Más filtros (%1$d activos)</string>
+    <string name="hide_filters">Ocultar filtros (%1$d activos)</string>
+    <string name="open_stream">Abrir transmisión</string>
 </resources>

@@ -27,8 +27,8 @@ fun LanguageSelector() {
 
     Box {
         SettingsAction(
-            title = stringResource(R.string.settings_language),
-            subtitle = locale.getDisplayName(locale).replaceFirstChar { it.titlecase(locale) },
+            title = locale.getDisplayName(locale).replaceFirstChar { it.titlecase(locale) },
+            subtitle = null,
             icon = Icons.Default.Language,
             onClick = { menuAberto = true },
             modifier = Modifier.fillMaxWidth()

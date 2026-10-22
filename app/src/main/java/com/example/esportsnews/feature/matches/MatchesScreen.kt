@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -48,6 +49,7 @@ fun MatchesScreen(state: MatchesUiState, onMatchClick: (Int) -> Unit, onOpenMenu
     onRetry: () -> Unit,
     onNextPage: () -> Unit
 ) {
+    var filtersExpanded by rememberSaveable { mutableStateOf(false) }
     val matches = state.matches
     val isLoading = state.isLoading
     val isRefreshing = state.isRefreshing
@@ -111,7 +113,6 @@ fun MatchesScreen(state: MatchesUiState, onMatchClick: (Int) -> Unit, onOpenMenu
                                         selectedGame == game, onClick = { onGame(game) })
                                 }
                             }
-                            TierFilterMenu(selectedTier, onSelect = { onTier(it) })
                         }
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
                             items(StatusFilter.entries, key = { it }) { status ->
@@ -119,20 +120,29 @@ fun MatchesScreen(state: MatchesUiState, onMatchClick: (Int) -> Unit, onOpenMenu
                                 MatchFilterChip(label, selectedStatus == status, usePurple = true, onClick = { onStatus(status) })
                             }
                         }
-                        MatchCalendar(dateList, selectedDate, currentLocale, onSelect = { onDate(it) })
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small)
-                        ) {
-                            OutlinedButton(
-                                onClick = onClear,
-                                enabled = hasSelectedFilters,
-                                modifier = Modifier.weight(1f).heightIn(min = 48.dp)
-                            ) { Text(stringResource(R.string.clear_filters), textAlign = TextAlign.Center) }
-                            OutlinedButton(
-                                onClick = onToday,
-                                modifier = Modifier.weight(1f).heightIn(min = 48.dp)
-                            ) { Text(stringResource(R.string.select_today), textAlign = TextAlign.Center) }
+                        val secondaryCount = (if (selectedTier != TierFilter.ALL) 1 else 0) +
+                            (if (selectedDate != null) 1 else 0)
+                        TextButton(onClick = { filtersExpanded = !filtersExpanded }, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(stringResource(if (filtersExpanded) R.string.hide_filters else R.string.more_filters, secondaryCount))
+                        }
+                        if (filtersExpanded) {
+                            TierFilterMenu(selectedTier, onSelect = onTier)
+                            MatchCalendar(dateList, selectedDate, currentLocale, onSelect = onDate)
+
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(HubSpacing.Small)
+                            ) {
+                                OutlinedButton(
+                                    onClick = onClear,
+                                    enabled = hasSelectedFilters,
+                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                                ) { Text(stringResource(R.string.clear_filters), textAlign = TextAlign.Center) }
+                                OutlinedButton(
+                                    onClick = onToday,
+                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                                ) { Text(stringResource(R.string.select_today), textAlign = TextAlign.Center) }
+                            }
                         }
                         Text(stringResource(R.string.matches_section), style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(top = HubSpacing.Small).semantics { heading() })
@@ -149,8 +159,10 @@ fun MatchesScreen(state: MatchesUiState, onMatchClick: (Int) -> Unit, onOpenMenu
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         lastSuccessfulQuery?.let { queriedAt ->
-                            val formatter = remember(currentLocale) {
-                                DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(currentLocale)
+                            val formatter = remember(currentLocale, queriedAt, deviceZone) {
+                                if (queriedAt.atZone(deviceZone).toLocalDate() == LocalDate.now(deviceZone))
+                                    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(currentLocale)
+                                else DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(currentLocale)
                             }
                             Text(
                                 stringResource(R.string.last_successful_query, formatter.format(queriedAt.atZone(deviceZone))),

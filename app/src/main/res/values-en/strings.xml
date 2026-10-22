@@ -67,7 +67,7 @@
     <string name="clear_filters">Clear filters</string>
     <string name="select_today">Today</string>
     <string name="matches_count">%1$d matches total · %2$d loaded</string>
-    <string name="last_successful_query">Last successful query: %1$s</string>
+    <string name="last_successful_query">Updated at %1$s</string>
     <string name="error_invalid_calendar_date">This date does not exist in the device time zone.</string>
     <string name="error_search_unavailable">Team and date search is not available on the server yet. Try again later or clear these filters.</string>
     <string name="matches_empty">No matches found for the selected filters.</string>
@@ -83,4 +83,7 @@
     <string name="cached_data_stale">Saved data may be out of date. Refresh to query the network.</string>
     <string name="settings_updates">Updates</string>
     <string name="settings_about">About</string>
+    <string name="more_filters">More filters (%1$d active)</string>
+    <string name="hide_filters">Hide filters (%1$d active)</string>
+    <string name="open_stream">Open stream</string>
 </resources>

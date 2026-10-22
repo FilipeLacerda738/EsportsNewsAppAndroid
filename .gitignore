@@ -33,6 +33,7 @@ signing.properties
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 /.idea/deploymentTargetSelector.xml
+/.idea/deviceManager.xml
 /.idea/deploymentTargetDropDown.xml
 /.idea/shelf/
 /.idea/usage.statistics.xml
@@ -50,6 +51,8 @@ Desktop.ini
 # Documentação interna de trabalho, mantida apenas localmente
 /AGENTS.md
 /PLANO_ATUALIZACOES.md
+/PLANO_REFATORACAO.md
+/SUGESTOES_UI_UX.md
 
 # .codex/config.toml, .codex/agents/*.toml e o Gradle Wrapper
 # são configurações compartilháveis e devem continuar versionáveis.

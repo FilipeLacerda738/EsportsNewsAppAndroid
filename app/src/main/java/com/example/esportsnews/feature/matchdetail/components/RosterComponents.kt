@@ -1,5 +1,6 @@
 package com.example.esportsnews.feature.matchdetail.components
 
+import com.example.esportsnews.core.ui.components.TeamImage
 import com.example.esportsnews.R
 import com.example.esportsnews.feature.matchdetail.countryFlagUrl
 
@@ -27,14 +28,9 @@ import java.util.Locale
 @Composable
 fun TeamLogoAndName(team: TeamDetail?, modifier: Modifier = Modifier) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
-        val fallback = painterResource(R.drawable.ic_team_placeholder)
-        AsyncImage(
-            model = team?.darkModeImageUrl?.takeIf { it.isNotBlank() } ?: team?.imageUrl?.takeIf { it.isNotBlank() },
-            contentDescription = null,
-            placeholder = fallback, error = fallback, fallback = fallback,
-            modifier = Modifier.size(HubDimensions.DetailTeamLogo).clip(CircleShape).background(MaterialTheme.colorScheme.background).padding(HubSpacing.Small),
-            contentScale = ContentScale.Fit
-        )
+        TeamImage(team?.name, team?.acronym, team?.darkModeImageUrl, team?.imageUrl,
+            Modifier.size(HubDimensions.DetailTeamLogo).clip(CircleShape)
+                .background(MaterialTheme.colorScheme.background).padding(HubSpacing.Small))
         Text(team?.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.to_be_defined), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall)
         countryFlagUrl(team?.location)?.let {
             AsyncImage(

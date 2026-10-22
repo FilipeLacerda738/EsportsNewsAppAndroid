@@ -98,8 +98,7 @@ internal fun SettingsAction(
 ) {
     Surface(onClick = onClick, enabled = enabled,
         modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        color = MaterialTheme.colorScheme.surface) {
         Row(Modifier.padding(HubSpacing.Large).heightIn(min = 48.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(HubSpacing.Large)) {

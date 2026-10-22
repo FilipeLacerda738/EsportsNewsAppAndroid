@@ -38,8 +38,9 @@ android {
         minSdk = 26
         targetSdk = 35
 
-        versionCode = getAppVersionCode()
-        versionName = "1.6.1"
+        // Keep 1.6.2 installable over 1.6.1 before a release commit is created.
+        versionCode = maxOf(59, getAppVersionCode())
+        versionName = "1.6.2"
 
         val apiKey = localProperties.getProperty("API_KEY")
             ?: localProperties.getProperty("API_ACCESS_KEY")

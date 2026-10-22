@@ -3,7 +3,6 @@ package com.example.esportsnews.core.ui.components
 import com.example.esportsnews.R
 import com.example.esportsnews.feature.matchdetail.countryFlagUrl
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -12,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,15 +28,9 @@ fun TeamProfile(team: Team?, modifier: Modifier = Modifier) {
 
 @Composable
 private fun TeamLogo(team: Team?, modifier: Modifier = Modifier) {
-    val fallback = painterResource(R.drawable.ic_team_placeholder)
-    AsyncImage(
-        model = team?.dark_mode_image_url?.takeIf { it.isNotBlank() } ?: team?.image_url?.takeIf { it.isNotBlank() },
-        contentDescription = null,
-        placeholder = fallback, error = fallback, fallback = fallback,
-        modifier = modifier.size(HubDimensions.TeamLogo).clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.background).padding(HubSpacing.ExtraSmall),
-        contentScale = ContentScale.Fit
-    )
+    TeamImage(team?.name, team?.acronym, team?.dark_mode_image_url, team?.image_url,
+        modifier.size(HubDimensions.TeamLogo).clip(MaterialTheme.shapes.small)
+            .background(MaterialTheme.colorScheme.background).padding(HubSpacing.ExtraSmall))
 }
 
 @Composable

@@ -188,8 +188,10 @@ fun MatchDetailContent(
                 Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
                     if (dataStale) Text(stringResource(R.string.cached_data_stale), style = MaterialTheme.typography.bodySmall)
                     queriedAt?.let {
-                        val formatter = remember(locale) {
-                            DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale)
+                        val formatter = remember(locale, it, zone) {
+                            if (it.atZone(zone).toLocalDate() == java.time.LocalDate.now(zone))
+                                DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale)
+                            else DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale)
                         }
                         Text(stringResource(R.string.last_successful_query, formatter.format(it.atZone(zone))),
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -263,6 +265,26 @@ fun MatchDetailContent(
                 }
             }
         }
+        item(key = "maps_heading") {
+            Text(stringResource(R.string.maps_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth().semantics { heading() }, color = MaterialTheme.colorScheme.onSurface)
+            if (maps.isEmpty()) Text(stringResource(R.string.no_maps), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        items(items = maps, key = { "map_${it.id}" }) { game ->
+            Card(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Column(Modifier.fillMaxWidth().padding(HubSpacing.Medium), verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
+                    Text(
+                        if (!game.mapName.isNullOrBlank()) stringResource(R.string.map_name_with_number, game.position.toString(), game.mapName)
+                        else stringResource(R.string.map_number_only, game.position.toString()),
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.semantics { heading() }
+                    )
+                    StatusBadge(game.status, null)
+                    mapWinnerName(game.winnerId, match.teamA, match.teamB)?.let {
+                        Text(stringResource(R.string.map_winner, it), color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            }
+        }
         item(key = "players_heading") {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.rosters_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() }, color = MaterialTheme.colorScheme.onSurface)
@@ -293,26 +315,6 @@ fun MatchDetailContent(
                 Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(Modifier.weight(1f).fillMaxHeight()) { playersA.getOrNull(index)?.let { PlayerItem(it, Modifier.fillMaxHeight()) } }
                     Box(Modifier.weight(1f).fillMaxHeight()) { playersB.getOrNull(index)?.let { PlayerItem(it, Modifier.fillMaxHeight()) } }
-                }
-            }
-        }
-        item(key = "maps_heading") {
-            Text(stringResource(R.string.maps_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth().semantics { heading() }, color = MaterialTheme.colorScheme.onSurface)
-            if (maps.isEmpty()) Text(stringResource(R.string.no_maps), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        items(items = maps, key = { "map_${it.id}" }) { game ->
-            Card(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                Column(Modifier.fillMaxWidth().padding(HubSpacing.Medium), verticalArrangement = Arrangement.spacedBy(HubSpacing.Small)) {
-                    Text(
-                        if (!game.mapName.isNullOrBlank()) stringResource(R.string.map_name_with_number, game.position.toString(), game.mapName)
-                        else stringResource(R.string.map_number_only, game.position.toString()),
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.semantics { heading() }
-                    )
-                    StatusBadge(game.status, null)
-                    mapWinnerName(game.winnerId, match.teamA, match.teamB)?.let {
-                        Text(stringResource(R.string.map_winner, it), color = MaterialTheme.colorScheme.primary)
-                    }
                 }
             }
         }
@@ -382,7 +384,7 @@ private fun StreamCard(stream: Stream, isLive: Boolean) {
                     modifier = Modifier.size(16.dp)
                 )
                 Text(
-                    stringResource(R.string.watch_live_title),
+                    stringResource(if (isLive) R.string.watch_live_title else R.string.open_stream),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = if (isLive) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimaryContainer

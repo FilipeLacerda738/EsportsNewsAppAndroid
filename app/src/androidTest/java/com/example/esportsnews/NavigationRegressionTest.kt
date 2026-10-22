@@ -1,5 +1,6 @@
 package com.example.esportsnews
 
+import androidx.test.espresso.Espresso
 import android.content.res.Configuration
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalConfiguration
@@ -51,7 +52,7 @@ class NavigationRegressionTest {
         val api = Proxy.newProxyInstance(ApiService::class.java.classLoader, arrayOf(ApiService::class.java)) { _, method, _ ->
             when (method.name) {
                 "getMatches" -> Response.success(PaginatedMatchResponse(1, 1, 1, false, listOf(match)))
-                "getMatchDetails" -> MatchDetail(1, "CSGO", "not_started", null, null, 0, 0, null,
+                "getMatchDetails" -> MatchDetail(1, "CSGO", "not_started", null, null, 0, 0, "https://www.twitch.tv/example",
                     league = null, teamA = null, teamB = null, games = null)
                 "getAppVersion" -> Response.success(AppVersion(BuildConfig.VERSION_NAME, "https://example.com/app.apk", ""))
                 else -> error("Unexpected API method: ${method.name}")
@@ -71,13 +72,26 @@ class NavigationRegressionTest {
                 EsportsApp(matches, details, updates)
             }
         }
+        compose.onNodeWithText(context.getString(R.string.clear_filters)).assertDoesNotExist()
+        compose.onNodeWithText(context.getString(R.string.more_filters, 0)).performScrollTo().performClick()
+        compose.onNodeWithText(context.getString(R.string.select_today)).performScrollTo().performClick()
+        compose.onNodeWithText(context.getString(R.string.hide_filters, 1)).performScrollTo().performClick()
+        compose.onNodeWithText(context.getString(R.string.more_filters, 1)).assertIsDisplayed()
+        compose.onNodeWithText(context.getString(R.string.more_filters, 1)).performClick()
+        compose.onNodeWithText(context.getString(R.string.clear_filters)).performScrollTo().performClick()
+        compose.onNodeWithText(context.getString(R.string.hide_filters, 0)).performScrollTo().performClick()
         compose.onNodeWithText("Alpha").performScrollTo().performClick()
         compose.onAllNodesWithText(context.getString(R.string.match_detail_title))[0].assertIsDisplayed()
+        compose.onNodeWithText(context.getString(R.string.open_stream)).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText(context.getString(R.string.watch_live_title)).assertDoesNotExist()
+        Espresso.pressBack()
+        compose.onNodeWithText("Alpha").performScrollTo().assertIsDisplayed().performClick()
         compose.onNodeWithContentDescription(context.getString(R.string.cd_back)).performClick()
+        compose.onNodeWithText("Alpha").performScrollTo().assertIsDisplayed()
         compose.onNodeWithContentDescription(context.getString(R.string.open_menu)).performScrollTo().performClick()
         compose.onNodeWithText(context.getString(R.string.settings_title)).performClick()
         compose.onNodeWithText(context.getString(R.string.settings_updates)).assertIsDisplayed()
-        compose.onAllNodesWithText(context.getString(R.string.settings_language)).assertCountEquals(2)
+        compose.onAllNodesWithText(context.getString(R.string.settings_language)).assertCountEquals(1)
         compose.onNodeWithContentDescription(context.getString(R.string.open_menu)).performClick()
         compose.onNodeWithText(context.getString(R.string.matches_section)).performClick()
         compose.onNodeWithText(context.getString(R.string.search_team)).assertIsDisplayed()

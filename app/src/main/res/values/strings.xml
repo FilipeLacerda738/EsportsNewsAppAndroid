@@ -68,7 +68,7 @@
     <string name="clear_filters">Limpar filtros</string>
     <string name="select_today">Hoje</string>
     <string name="matches_count">%1$d partidas no total · %2$d carregadas</string>
-    <string name="last_successful_query">Última consulta bem-sucedida: %1$s</string>
+    <string name="last_successful_query">Atualizado às %1$s</string>
     <string name="error_invalid_calendar_date">Esta data não existe no fuso horário do dispositivo.</string>
     <string name="error_search_unavailable">A busca por equipe e data ainda não está disponível no servidor. Tente novamente mais tarde ou limpe esses filtros.</string>
     <string name="matches_empty">Nenhuma partida encontrada para os filtros selecionados.</string>
@@ -84,4 +84,7 @@
     <string name="cached_data_stale">Os dados salvos podem estar desatualizados. Atualize para consultar a rede.</string>
     <string name="settings_updates">Atualizações</string>
     <string name="settings_about">Sobre</string>
+    <string name="more_filters">Mais filtros (%1$d ativos)</string>
+    <string name="hide_filters">Recolher filtros (%1$d ativos)</string>
+    <string name="open_stream">Abrir transmissão</string>
 </resources>
