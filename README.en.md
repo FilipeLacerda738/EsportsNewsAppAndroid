@@ -85,7 +85,7 @@ Create a `local.properties` file in the project root:
 
 ```properties
 API_KEY=your_access_key_here
-DEBUG_API_BASE_URL=https://esports-pro-api.onrender.com/
+DEBUG_API_BASE_URL=
 ```
 
 ---
@@ -100,7 +100,7 @@ DEBUG_API_BASE_URL=https://esports-pro-api.onrender.com/
 
 # 🌐 Network Architecture
 
-The URL is selected by build variant. The example above points debug to Render. Without `DEBUG_API_BASE_URL`, debug defaults to `http://127.0.0.1:8000/`; use `http://10.0.2.2:8000/` for a local backend from the emulator. Release uses `https://esports-pro-api.onrender.com/`.
+The URL is selected by build variant. The example above points debug to Render. Without `DEBUG_API_BASE_URL`, debug defaults to `http://127.0.0.1:8000/`; use `http://10.0.2.2:8000/` for a local backend from the emulator. Release uses `your deployment`.
 
 Keep the Android Studio `sdk.dir` setting in `local.properties`. Property values must not be quoted. `API_ACCESS_KEY` remains a fallback when `API_KEY` is absent. Do not commit this file.
 
