@@ -98,7 +98,7 @@ DEBUG_API_BASE_URL=https://esports-pro-api.onrender.com/
 
 # 🌐 Arquitetura de Rede
 
-A URL é definida por variante no build. O exemplo acima configura o debug para o Render. Sem `DEBUG_API_BASE_URL`, o padrão debug é `http://127.0.0.1:8000/`; para backend local no emulador, use `http://10.0.2.2:8000/`. Release usa `https://esports-pro-api.onrender.com/`.
+A URL é definida por variante no build. O exemplo acima configura o debug para o Render. Sem `DEBUG_API_BASE_URL`, o padrão debug é `http://127.0.0.1:8000/`; para backend local no emulador, use `http://10.0.2.2:8000/`. Release usa `seu deploy`.
 
 Em `local.properties`, mantenha `sdk.dir` configurado pelo Android Studio. Valores de propriedades não usam aspas. `API_ACCESS_KEY` continua aceito como alternativa quando `API_KEY` estiver ausente. Não versione esse arquivo.
 
