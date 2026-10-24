@@ -83,7 +83,7 @@ Crie um arquivo `local.properties` na raiz do projeto:
 
 ```properties
 API_KEY=sua_chave_de_acesso_aqui
-DEBUG_API_BASE_URL=https://esports-pro-api.onrender.com/
+DEBUG_API_BASE_URL=
 ```
 
 ---
